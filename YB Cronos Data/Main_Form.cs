@@ -11,7 +11,6 @@ namespace YB_Cronos_Data
     {
         private string __url_01 = "http://103.4.104.8/page/manager/login.jsp";
         private string __url = "";
-        private string __get_value;
         private int __send = 0;
         private bool __is_close;
         private bool __is_login = false;
