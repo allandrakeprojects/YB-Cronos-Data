@@ -50,7 +50,7 @@
             this.label_finish_datetime_1 = new System.Windows.Forms.Label();
             this.label_start_datetime = new System.Windows.Forms.Label();
             this.pictureBox_loader = new System.Windows.Forms.PictureBox();
-            this.label_currentrecord = new System.Windows.Forms.Label();
+            this.label_total_records = new System.Windows.Forms.Label();
             this.label_page_count = new System.Windows.Forms.Label();
             this.label_page_count_1 = new System.Windows.Forms.Label();
             this.label_total_records_1 = new System.Windows.Forms.Label();
@@ -78,6 +78,9 @@
             this.label_getdatacount = new System.Windows.Forms.Label();
             this.label_count = new System.Windows.Forms.Label();
             this.timer_landing = new System.Windows.Forms.Timer(this.components);
+            this.timer_cycle_in = new System.Windows.Forms.Timer(this.components);
+            this.timer_start_button = new System.Windows.Forms.Timer(this.components);
+            this.timer_elapsed = new System.Windows.Forms.Timer(this.components);
             this.panel_header.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox_minimize)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox_close)).BeginInit();
@@ -173,6 +176,7 @@
             this.panel_yb.Controls.Add(this.label_navigate_up);
             this.panel_yb.Controls.Add(this.label_title_yb);
             this.panel_yb.Controls.Add(this.panel_filter);
+            this.panel_yb.Enabled = false;
             this.panel_yb.Location = new System.Drawing.Point(17, 70);
             this.panel_yb.Name = "panel_yb";
             this.panel_yb.Size = new System.Drawing.Size(534, 408);
@@ -197,7 +201,7 @@
             this.panel_status.Controls.Add(this.label_locatefolder);
             this.panel_status.Controls.Add(this.panel_datetime);
             this.panel_status.Controls.Add(this.pictureBox_loader);
-            this.panel_status.Controls.Add(this.label_currentrecord);
+            this.panel_status.Controls.Add(this.label_total_records);
             this.panel_status.Controls.Add(this.label_page_count);
             this.panel_status.Controls.Add(this.label_page_count_1);
             this.panel_status.Controls.Add(this.label_total_records_1);
@@ -255,7 +259,6 @@
             this.panel_datetime.Name = "panel_datetime";
             this.panel_datetime.Size = new System.Drawing.Size(287, 58);
             this.panel_datetime.TabIndex = 28;
-            this.panel_datetime.Visible = false;
             // 
             // label_elapsed
             // 
@@ -328,15 +331,14 @@
             this.pictureBox_loader.TabStop = false;
             this.pictureBox_loader.Visible = false;
             // 
-            // label_currentrecord
+            // label_total_records
             // 
-            this.label_currentrecord.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label_currentrecord.Location = new System.Drawing.Point(258, 116);
-            this.label_currentrecord.Name = "label_currentrecord";
-            this.label_currentrecord.Size = new System.Drawing.Size(250, 18);
-            this.label_currentrecord.TabIndex = 12;
-            this.label_currentrecord.Text = "-";
-            this.label_currentrecord.Visible = false;
+            this.label_total_records.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label_total_records.Location = new System.Drawing.Point(258, 116);
+            this.label_total_records.Name = "label_total_records";
+            this.label_total_records.Size = new System.Drawing.Size(250, 18);
+            this.label_total_records.TabIndex = 12;
+            this.label_total_records.Text = "-";
             // 
             // label_page_count
             // 
@@ -346,7 +348,6 @@
             this.label_page_count.Size = new System.Drawing.Size(249, 18);
             this.label_page_count.TabIndex = 13;
             this.label_page_count.Text = "-";
-            this.label_page_count.Visible = false;
             // 
             // label_page_count_1
             // 
@@ -357,7 +358,6 @@
             this.label_page_count_1.Size = new System.Drawing.Size(46, 18);
             this.label_page_count_1.TabIndex = 20;
             this.label_page_count_1.Text = "Page:";
-            this.label_page_count_1.Visible = false;
             // 
             // label_total_records_1
             // 
@@ -368,7 +368,6 @@
             this.label_total_records_1.Size = new System.Drawing.Size(98, 18);
             this.label_total_records_1.TabIndex = 18;
             this.label_total_records_1.Text = "Total Record:";
-            this.label_total_records_1.Visible = false;
             // 
             // label_yb_status
             // 
@@ -380,7 +379,6 @@
             this.label_yb_status.TabIndex = 17;
             this.label_yb_status.Text = "-";
             this.label_yb_status.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            this.label_yb_status.Visible = false;
             // 
             // label_navigate_up
             // 
@@ -411,13 +409,16 @@
             this.comboBox_list.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.comboBox_list.FormattingEnabled = true;
             this.comboBox_list.Items.AddRange(new object[] {
+            "Registration",
             "Payment Report",
             "Bonus Report",
+            "Turnover Record",
             "Bet Record"});
             this.comboBox_list.Location = new System.Drawing.Point(69, 47);
             this.comboBox_list.Name = "comboBox_list";
             this.comboBox_list.Size = new System.Drawing.Size(133, 23);
             this.comboBox_list.TabIndex = 12;
+            this.comboBox_list.SelectedIndexChanged += new System.EventHandler(this.comboBox_list_SelectedIndexChanged);
             // 
             // comboBox
             // 
@@ -432,6 +433,7 @@
             this.comboBox.Name = "comboBox";
             this.comboBox.Size = new System.Drawing.Size(133, 23);
             this.comboBox.TabIndex = 7;
+            this.comboBox.SelectedIndexChanged += new System.EventHandler(this.comboBox_SelectedIndexChanged);
             // 
             // dateTimePicker_end
             // 
@@ -487,6 +489,7 @@
             this.button_stop.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             this.button_stop.UseVisualStyleBackColor = false;
             this.button_stop.Visible = false;
+            this.button_stop.Click += new System.EventHandler(this.button_stop_Click);
             // 
             // button_start
             // 
@@ -506,6 +509,7 @@
             this.button_start.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             this.button_start.UseVisualStyleBackColor = false;
             this.button_start.Visible = false;
+            this.button_start.Click += new System.EventHandler(this.button_start_Click);
             // 
             // panel_footer
             // 
@@ -534,6 +538,7 @@
             this.button1.TabIndex = 1;
             this.button1.UseVisualStyleBackColor = false;
             this.button1.Visible = false;
+            this.button1.Click += new System.EventHandler(this.button1_Click);
             // 
             // label_status
             // 
@@ -651,6 +656,22 @@
             this.timer_landing.Interval = 2000;
             this.timer_landing.Tick += new System.EventHandler(this.timer_landing_Tick);
             // 
+            // timer_cycle_in
+            // 
+            this.timer_cycle_in.Enabled = true;
+            this.timer_cycle_in.Interval = 1000;
+            this.timer_cycle_in.Tick += new System.EventHandler(this.timer_cycle_in_Tick);
+            // 
+            // timer_start_button
+            // 
+            this.timer_start_button.Interval = 1000;
+            this.timer_start_button.Tick += new System.EventHandler(this.timer_start_button_TickAsync);
+            // 
+            // timer_elapsed
+            // 
+            this.timer_elapsed.Interval = 1000;
+            this.timer_elapsed.Tick += new System.EventHandler(this.timer_elapsed_Tick);
+            // 
             // Main_Form
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -671,6 +692,7 @@
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "YB Cronos Data";
             this.Load += new System.EventHandler(this.Main_Form_Load);
+            this.Shown += new System.EventHandler(this.Main_Form_Shown);
             this.panel_header.ResumeLayout(false);
             this.panel_header.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox_minimize)).EndInit();
@@ -725,7 +747,7 @@
         private System.Windows.Forms.Label label_finish_datetime_1;
         private System.Windows.Forms.Label label_start_datetime;
         private System.Windows.Forms.PictureBox pictureBox_loader;
-        private System.Windows.Forms.Label label_currentrecord;
+        private System.Windows.Forms.Label label_total_records;
         private System.Windows.Forms.Label label_page_count;
         private System.Windows.Forms.Label label_page_count_1;
         private System.Windows.Forms.Label label_total_records_1;
@@ -740,5 +762,8 @@
         private System.Windows.Forms.Label label_count;
         private System.Windows.Forms.Timer timer_landing;
         private System.Windows.Forms.Panel panel_cefsharp;
+        private System.Windows.Forms.Timer timer_cycle_in;
+        private System.Windows.Forms.Timer timer_start_button;
+        private System.Windows.Forms.Timer timer_elapsed;
     }
 }
