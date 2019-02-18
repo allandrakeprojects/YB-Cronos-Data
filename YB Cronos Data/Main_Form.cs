@@ -703,7 +703,17 @@ namespace YB_Cronos_Data
             wc.Encoding = Encoding.UTF8;
             wc.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
 
-            byte[] result = await wc.DownloadDataTaskAsync("http://103.4.104.8/manager/member/searchMember?userId=&userName=&email=&lastDepositSince=&lastBetTimeSince=&noLoginSince=&loginIp=&vipLevel=-1&phoneNumber=&registeredDateStart=2018%2F01%2F22+00%3A00%3A00&registeredDateEnd=2019%2F02%2F18+00%3A00%3A00&birthOfDateStart=&birthOfDateEnd=&searchType=1&affiliateCode=All&pageNumber=1&pageSize=100000&sortCondition=1&sortName=sign_up_time&sortOrder=1&searchText=");
+            string start = dateTimePicker_start.Text;
+            start = start.Replace("-", "%2F");
+            start = start.Replace(" ", "+");
+            start = start.Replace(":", "%3A");
+            
+            string end = dateTimePicker_end.Text;
+            end = end.Replace("-", "%2F");
+            end = end.Replace(" ", "+");
+            end = end.Replace(":", "%3A");
+
+            byte[] result = await wc.DownloadDataTaskAsync("http://103.4.104.8/manager/member/searchMember?userId=&userName=&email=&lastDepositSince=&lastBetTimeSince=&noLoginSince=&loginIp=&vipLevel=-1&phoneNumber=&registeredDateStart=" + start + "&registeredDateEnd="+ end +"&birthOfDateStart=&birthOfDateEnd=&searchType=1&affiliateCode=All&pageNumber=1&pageSize=100000&sortCondition=1&sortName=sign_up_time&sortOrder=1&searchText=");
             string responsebody = Encoding.UTF8.GetString(result);
             var deserialize_object = JsonConvert.DeserializeObject(responsebody);
             __jo = JObject.Parse(deserialize_object.ToString());
