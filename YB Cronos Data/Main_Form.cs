@@ -976,39 +976,6 @@ namespace YB_Cronos_Data
             return _first_deposit_time.ToString();
         }
 
-        //private string async Task ___REGISTRATION_FIRSTDEPOSITAsync(string username)
-        //{
-        //    try
-        //    {
-        //        var cookie_manager = Cef.GetGlobalCookieManager();
-        //        var visitor = new CookieCollector();
-        //        cookie_manager.VisitUrlCookies(__url, true, visitor);
-        //        var cookies = await visitor.Task;
-        //        var cookie = CookieCollector.GetCookieHeader(cookies);
-        //        WebClient wc = new WebClient();
-        //        wc.Headers.Add("Cookie", cookie);
-        //        wc.Encoding = Encoding.UTF8;
-        //        wc.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
-
-        //        byte[] result = await wc.DownloadDataTaskAsync("http://103.4.104.8/manager/member/getProfileOverview?userId=" + username);
-        //        string responsebody = Encoding.UTF8.GetString(result);
-        //        var deserialize_object = JsonConvert.DeserializeObject(responsebody);
-        //        JObject _jo = JObject.Parse(deserialize_object.ToString());
-        //        JToken _first_deposit_time = _jo.SelectToken("$.firstDepositTime").ToString();
-
-        //        __playerlist_qq = _qq.ToString();
-        //        __playerlist_wc = _wc.ToString();
-        //    }
-        //    catch (Exception err)
-        //    {
-        //        // send
-        //        //if (__isLogin)
-        //        //{
-        //        //    await ___PlayerListContactNumberEmailAsync(username);
-        //        //}
-        //    }
-        //}
-
         private void ___GETDATA_AFFILIATELIST()
         {
             try
