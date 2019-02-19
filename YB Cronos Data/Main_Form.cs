@@ -1369,8 +1369,92 @@ namespace YB_Cronos_Data
                     // -----
                     JToken _submitted_date = __jo.SelectToken("$.aaData[" + i + "].summaryDate").ToString();
 
-                    MessageBox.Show("_member: " + _member + "\n_provider: " + _provider + "\n_category: " + _category + "\n_bet_count: " + _bet_count + "" +
-                        "\n_vip: " + _vip + "\n_stake: " + _stake + "\n_company_wl: " + _company_wl + "\n_submitted_date: " + _submitted_date);
+                    string _fd_date = await ___REGISTRATION_FIRSTDEPOSITAsync(_member.ToString());
+                    string _ld_date = await ___REGISTRATION_LASTDEPOSITAsync(_member.ToString());
+                    if (_fd_date != "")
+                    {
+                        DateTime _fd_date_replace = new DateTime(1970, 1, 1, 0, 0, 0, 0).AddSeconds(Math.Round(Convert.ToDouble(_fd_date.ToString()) / 1000d)).ToLocalTime();
+                        _fd_date = _fd_date_replace.ToString("MM/dd/yyyy");
+                    }
+                    else
+                    {
+                        _fd_date = "";
+                    }
+                    if (_ld_date != "")
+                    {
+                        DateTime _ld_date_replace = new DateTime(1970, 1, 1, 0, 0, 0, 0).AddSeconds(Math.Round(Convert.ToDouble(_ld_date.ToString()) / 1000d)).ToLocalTime();
+                        _ld_date = _ld_date_replace.ToString("yyyy-MM-dd");
+                    }
+                    else
+                    {
+                        _ld_date = "";
+                    }
+
+                    // ----- Retained
+                    string _retained = "";
+                    String _month_ = DateTime.Now.Month.ToString();
+                    String _year_ = DateTime.Now.Year.ToString();
+                    string _year_month = _year_ + "-" + _month_;
+                    if (_fd_date != "" && _ld_date != "")
+                    {
+                        DateTime _fd_date_ = DateTime.ParseExact(_fd_date, "MM/dd/yyyy", CultureInfo.InvariantCulture);
+                        DateTime _ld_date_ = DateTime.ParseExact(_ld_date, "yyyy-MM-dd", CultureInfo.InvariantCulture);
+
+                        var _last2months = DateTime.Today.AddMonths(-2);
+                        DateTime _last2months_ = DateTime.ParseExact(_last2months.ToString("yyyy-MM-dd"), "yyyy-MM-dd", CultureInfo.InvariantCulture);
+                        if (_ld_date_ >= _last2months_)
+                        {
+                            _retained = "Retained";
+                        }
+                        else
+                        {
+                            _retained = "Not Retained";
+                        }
+                    }
+                    // ----- New Based on Reg
+                    string _date_reg = "";
+                    string _new_based_on_reg = "";
+                    if (_date_reg != "")
+                    {
+                        DateTime _date_reg_replace = DateTime.ParseExact(_date_reg, "MM/dd/yyyy", CultureInfo.InvariantCulture);
+                        if (_date_reg_replace.ToString("yyyy-MM") == _year_month)
+                        {
+                            _new_based_on_reg = "Yes";
+                        }
+                        else
+                        {
+                            _new_based_on_reg = "No";
+                        }
+                    }
+                    else
+                    {
+                        _new_based_on_reg = "No";
+                    }
+                    // ----- New Based on Dep
+                    // ----- Real Player
+                    string _real_player = "";
+                    string _new_based_on_dep = "";
+                    if (_fd_date != "")
+                    {
+                        DateTime _first_deposit = DateTime.ParseExact(_fd_date, "MM/dd/yyyy", CultureInfo.InvariantCulture);
+                        if (_first_deposit.ToString("yyyy-MM") == _year_month)
+                        {
+                            _new_based_on_dep = "Yes";
+                        }
+                        else
+                        {
+                            _new_based_on_dep = "No";
+                        }
+
+                        _real_player = "Yes";
+                    }
+                    else
+                    {
+                        _real_player = "No";
+                    }
+
+                    //MessageBox.Show("_member: " + _member + "\n_provider: " + _provider + "\n_category: " + _category + "\n_bet_count: " + _bet_count + "" +
+                    //    "\n_vip: " + _vip + "\n_stake: " + _stake + "\n_company_wl: " + _company_wl + "\n_submitted_date: " + _submitted_date);
 
                     //if (_display_count == 1)
                     //{
