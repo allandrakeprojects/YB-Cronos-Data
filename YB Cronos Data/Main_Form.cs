@@ -3,6 +3,7 @@ using CefSharp.WinForms;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Drawing;
@@ -12,6 +13,7 @@ using System.Linq;
 using System.Net;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Excel = Microsoft.Office.Interop.Excel;
@@ -24,6 +26,11 @@ namespace YB_Cronos_Data
         private string __url = "";
         private string __start_datetime_elapsed;
         private string __file_location = "\\\\192.168.10.22\\ssi-reporting";
+        private string __brand_code = "YB";
+        private string __brand_color = "#EC6506";
+        private string __app = "Cronos Data";
+        private string __app_type = "2";
+        private string __display_length = "100000";
         private int __send = 0;
         private int __timer_count = 10;
         private bool __is_close;
@@ -33,7 +40,8 @@ namespace YB_Cronos_Data
         private JObject __jo;
         private JToken __jo_count;
         private ChromiumWebBrowser chromeBrowser;
-        List<String> __getdata_affiliatelist = new List<String>();
+        List<string> __getdata_affiliatelist = new List<string>();
+        List<string> __getdata_bonuscode = new List<string>();
         Timer timer = new Timer();
         Form __mainFormHandler;
         
@@ -193,7 +201,7 @@ namespace YB_Cronos_Data
             if (dr == DialogResult.Yes)
             {
                 __is_close = false;
-                Environment.Exit(0);
+                //Environment.Exit(0);
             }
         }
 
@@ -240,8 +248,8 @@ namespace YB_Cronos_Data
 
                         string datetime = DateTime.Now.ToString("dd MMM HH:mm:ss");
                         // comment
-                        //SendITSupport("The application have been logout, please re-login again.");
-                        //SendMyBot("The application have been logout, please re-login again.");
+                        SendITSupport("The application have been logout, please re-login again.");
+                        SendMyBot("The application have been logout, please re-login again.");
                         __send = 0;
                         // comment
                         //timer_pending.Stop();
@@ -262,8 +270,8 @@ namespace YB_Cronos_Data
                             {
                                 if (!__is_login)
                                 {
-                                    args.Frame.ExecuteJavaScriptAsync("document.getElementById('username').value = 'testrain';");
-                                    args.Frame.ExecuteJavaScriptAsync("document.getElementById('password').value = 'rain12345';");
+                                    args.Frame.ExecuteJavaScriptAsync("document.getElementById('username').value = 'ybrain';");
+                                    args.Frame.ExecuteJavaScriptAsync("document.getElementById('password').value = 'pass123';");
                                     args.Frame.ExecuteJavaScriptAsync("window.scrollTo(0,document.body.scrollHeight)");
                                     __is_login = false;
                                     panel_cefsharp.Visible = true;
@@ -346,8 +354,7 @@ namespace YB_Cronos_Data
                 }));
             }
         }
-
-
+        
         private void timer_landing_Tick(object sender, EventArgs e)
         {
             if (!Cef.IsInitialized)
@@ -382,6 +389,7 @@ namespace YB_Cronos_Data
         private void Main_Form_Shown(object sender, EventArgs e)
         {
             ___GETDATA_AFFILIATELIST();
+            ___GETDATA_BONUSCODE();
         }
 
         private void comboBox_SelectedIndexChanged(object sender, EventArgs e)
@@ -519,7 +527,7 @@ namespace YB_Cronos_Data
             DateTime today = DateTime.Now;
             DateTime date = today.AddDays(1);
             Properties.Settings.Default.______midnight_time = date.ToString("yyyy-MM-dd 00:30");
-            Properties.Settings.Default.______start_detect = "1";
+            Properties.Settings.Default.______start_detect = "4";
             Properties.Settings.Default.Save();
         }
 
@@ -644,7 +652,7 @@ namespace YB_Cronos_Data
                 try
                 {
                     label_count.Text = __timer_count--.ToString();
-                    if (label_count.Text == "-1")
+                    if (label_count.Text == "9")
                     {
                         label_status.Text = "Running";
                         panel_status.Visible = true;
@@ -664,21 +672,25 @@ namespace YB_Cronos_Data
                         else if (comboBox_list.SelectedIndex == 1)
                         {
                             // Payment
-                            ___PAYMENT();
+                            label_yb_status.Text = "status: doing calculation... --- DEPOSIT RECORD";
+                            await ___PAYMENTAsync();
                         }
                         else if (comboBox_list.SelectedIndex == 2)
                         {
                             // Bonus
-                            ___BONUS();
+                            label_yb_status.Text = "status: doing calculation... --- BONUS REPORT";
+                            await ___BONUSAsync();
                         }
                         else if (comboBox_list.SelectedIndex == 3)
                         {
                             // Turnover Record
-                            ___TURNOVER();
+                            label_yb_status.Text = "status: doing calculation... --- TURNOVER RECORD";
+                            await ___TURNOVERAsync();
                         }
                         else if (comboBox_list.SelectedIndex == 4)
                         {
                             // Bet Record
+                            label_yb_status.Text = "status: doing calculation... --- BET RECORD";
                             ___BET();
                         }
                     }
@@ -693,269 +705,705 @@ namespace YB_Cronos_Data
 
         private async Task ___REGISTRATIONAsync()
         {
-            var cookie_manager = Cef.GetGlobalCookieManager();
-            var visitor = new CookieCollector();
-            cookie_manager.VisitUrlCookies(__url, true, visitor);
-            var cookies = await visitor.Task;
-            var cookie = CookieCollector.GetCookieHeader(cookies);
-            WebClient wc = new WebClient();
-            wc.Headers.Add("Cookie", cookie);
-            wc.Encoding = Encoding.UTF8;
-            wc.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
-
-            string start = dateTimePicker_start.Text;
-            start = start.Replace("-", "%2F");
-            start = start.Replace(" ", "+");
-            start = start.Replace(":", "%3A");
-            
-            string end = dateTimePicker_end.Text;
-            end = end.Replace("-", "%2F");
-            end = end.Replace(" ", "+");
-            end = end.Replace(":", "%3A");
-
-            byte[] result = await wc.DownloadDataTaskAsync("http://103.4.104.8/manager/member/searchMember?userId=&userName=&email=&lastDepositSince=&lastBetTimeSince=&noLoginSince=&loginIp=&vipLevel=-1&phoneNumber=&registeredDateStart=" + start + "&registeredDateEnd="+ end +"&birthOfDateStart=&birthOfDateEnd=&searchType=1&affiliateCode=All&pageNumber=1&pageSize=100000&sortCondition=1&sortName=sign_up_time&sortOrder=1&searchText=");
-            string responsebody = Encoding.UTF8.GetString(result);
-            var deserialize_object = JsonConvert.DeserializeObject(responsebody);
-            __jo = JObject.Parse(deserialize_object.ToString());
-            __jo_count = __jo.SelectToken("$.aaData");
-            label_page_count.Text = "0 of 1";
-            label_total_records.Text = "0 of " + __jo_count.Count().ToString("N0");
-
-            // PROCESS DATA
-            StringBuilder _DATA = new StringBuilder();
-            int _display_count = 0;
-
-            for (int i = 0; i < __jo_count.Count(); i++)
+            try
             {
-                Application.DoEvents();
-                _display_count++;
-                label_total_records.Text = _display_count.ToString("N0") + " of " + __jo_count.Count().ToString("N0");
+                var cookie_manager = Cef.GetGlobalCookieManager();
+                var visitor = new CookieCollector();
+                cookie_manager.VisitUrlCookies(__url, true, visitor);
+                var cookies = await visitor.Task;
+                var cookie = CookieCollector.GetCookieHeader(cookies);
+                WebClient wc = new WebClient();
+                wc.Headers.Add("Cookie", cookie);
+                wc.Encoding = Encoding.UTF8;
+                wc.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
 
-                JToken _username = __jo.SelectToken("$.aaData[" + i + "].userId").ToString();
-                // -----
-                JToken _name = __jo.SelectToken("$.aaData[" + i + "].userName").ToString();
-                // -----
-                JToken _email = __jo.SelectToken("$.aaData[" + i + "].email").ToString();
-                // -----
-                JToken _phone = __jo.SelectToken("$.aaData[" + i + "].phoneNumber").ToString();
-                // -----
-                JToken _dob = __jo.SelectToken("$.aaData[" + i + "].birthday").ToString();
-                if (_dob.ToString() != "-1")
+                string start = dateTimePicker_start.Text;
+                start = start.Replace("-", "%2F");
+                start = start.Replace(" ", "+");
+                start = start.Replace(":", "%3A");
+
+                string end = dateTimePicker_end.Text;
+                end = end.Replace("-", "%2F");
+                end = end.Replace(" ", "+");
+                end = end.Replace(":", "%3A");
+
+                label_page_count.Text = "-";
+                byte[] result = await wc.DownloadDataTaskAsync("http://103.4.104.8/manager/member/searchMember?userId=&userName=&email=&lastDepositSince=&lastBetTimeSince=&noLoginSince=&loginIp=&vipLevel=-1&phoneNumber=&registeredDateStart=" + start + "&registeredDateEnd=" + end + "&birthOfDateStart=&birthOfDateEnd=&searchType=1&affiliateCode=All&pageNumber=1&pageSize=" + __display_length + "&sortCondition=1&sortName=sign_up_time&sortOrder=1&searchText=");
+                string responsebody = Encoding.UTF8.GetString(result);
+                var deserialize_object = JsonConvert.DeserializeObject(responsebody);
+                __jo = JObject.Parse(deserialize_object.ToString());
+                __jo_count = __jo.SelectToken("$.aaData");
+                label_page_count.Text = "1 of 1";
+                label_total_records.Text = "0 of " + __jo_count.Count().ToString("N0");
+                label_yb_status.Text = "status: getting data... --- MEMBER LIST";
+
+                // REGISTRATION PROCESS DATA
+                StringBuilder _DATA = new StringBuilder();
+                int _display_count = 0;
+                
+                for (int i = 0; i < __jo_count.Count(); i++)
                 {
-                    DateTime _dob_replace = new DateTime(1970, 1, 1, 0, 0, 0, 0).AddSeconds(Math.Round(Convert.ToDouble(_dob.ToString()) / 1000d)).ToLocalTime();
-                    _dob = _dob_replace.ToString("yyyy-MM-dd");
-                }
-                else
-                {
-                    _dob = "";
-                }
-                // -----
-                JToken _vip = __jo.SelectToken("$.aaData[" + i + "].vipLevel").ToString();
-                // -----
-                JToken _affiliate_url = __jo.SelectToken("$.aaData[" + i + "].affiliateUrl").ToString();
-                // -----
-                string _source = "";
-                char[] split = "*|*".ToCharArray();
-                for (int i_s = 0; i_s < __getdata_affiliatelist.Count; i_s++)
-                {
-                    string[] results = __getdata_affiliatelist[i_s].Split(split);
-                    if (results[0].Trim() == _affiliate_url.ToString())
+                    Application.DoEvents();
+                    _display_count++;
+                    label_total_records.Text = _display_count.ToString("N0") + " of " + __jo_count.Count().ToString("N0");
+
+                    JToken _username = __jo.SelectToken("$.aaData[" + i + "].userId").ToString();
+                    // -----
+                    JToken _name = __jo.SelectToken("$.aaData[" + i + "].userName").ToString();
+                    // -----
+                    JToken _email = __jo.SelectToken("$.aaData[" + i + "].email").ToString();
+                    // -----
+                    JToken _contact_number = __jo.SelectToken("$.aaData[" + i + "].phoneNumber").ToString();
+                    // -----
+                    JToken _dob = __jo.SelectToken("$.aaData[" + i + "].birthday").ToString();
+                    if (_dob.ToString() != "-1")
                     {
-                        _source = results[3].Trim();
-                        break;
+                        DateTime _dob_replace = new DateTime(1970, 1, 1, 0, 0, 0, 0).AddSeconds(Math.Round(Convert.ToDouble(_dob.ToString()) / 1000d)).ToLocalTime();
+                        _dob = _dob_replace.ToString("yyyy-MM-dd");
                     }
-                }
-                // -----
-                string _first_deposit = await ___REGISTRATION_FIRSTDEPOSITAsync(_username.ToString());
-                string _month_first_deposit = "";
-                if (_first_deposit != "")
-                {
-                    DateTime _first_deposit_replace = new DateTime(1970, 1, 1, 0, 0, 0, 0).AddSeconds(Math.Round(Convert.ToDouble(_first_deposit.ToString()) / 1000d)).ToLocalTime();
-                    _first_deposit = _first_deposit_replace.ToString("yyyy-MM-dd");
-                    _month_first_deposit = _first_deposit_replace.ToString("yyyy-MM-01");
-                }
-                else
-                {
-                    _first_deposit = "";
-                }
-                // -----
-                JToken _last_deposit = __jo.SelectToken("$.aaData[" + i + "].lastDepositTime").ToString();
-                if (_last_deposit.ToString() != "")
-                {
-                    DateTime _last_deposit_replace = new DateTime(1970, 1, 1, 0, 0, 0, 0).AddSeconds(Math.Round(Convert.ToDouble(_last_deposit.ToString()) / 1000d)).ToLocalTime();
-                    _last_deposit = _last_deposit_replace.ToString("yyyy-MM-dd");
-                }
-                else
-                {
-                    _last_deposit = "";
-                }
-                // -----
-                JToken _date_registered = __jo.SelectToken("$.aaData[" + i + "].createTime").ToString();
-                string _month_registered = "";
-                if (_date_registered.ToString() != "")
-                {
-                    DateTime _date_registered_replace = new DateTime(1970, 1, 1, 0, 0, 0, 0).AddSeconds(Math.Round(Convert.ToDouble(_date_registered.ToString()) / 1000d)).ToLocalTime();
-                    _date_registered = _date_registered_replace.ToString("yyyy-MM-dd");
-                    _month_registered = _date_registered_replace.ToString("yyyy-MM-01");
-
-                }
-                else
-                {
-                    _date_registered = "";
-                }
-                // -----
-                JToken _last_login_time = __jo.SelectToken("$.aaData[" + i + "].loginTime").ToString();
-                if (_last_login_time.ToString() != "")
-                {
-                    DateTime _last_login_time_replace = new DateTime(1970, 1, 1, 0, 0, 0, 0).AddSeconds(Math.Round(Convert.ToDouble(_last_login_time.ToString()) / 1000d)).ToLocalTime();
-                    _last_login_time = _last_login_time_replace.ToString("yyyy-MM-dd");
-                }
-                else
-                {
-                    _last_login_time = "";
-                }
-                // -----
-                JToken _ip_address = __jo.SelectToken("$.aaData[" + i + "].loginIp").ToString();
-                // -----
-                JToken _status = __jo.SelectToken("$.aaData[" + i + "].status").ToString();
-                if (_status.ToString() == "0")
-                {
-                    _status = "INACTIVATED";
-                }
-                else if (_status.ToString() == "1")
-                {
-                    _status = "ACTIVE";
-                }
-                else if (_status.ToString() == "2")
-                {
-                    _status = "SUSPEND";
-                }
-                else if (_status.ToString() == "3")
-                {
-                    _status = "LOCKED";
-                }
-
-                //MessageBox.Show("Username: " + _username + "\nName: " + _name + "\nEmail: " + _email + "\nPhone: " + _phone + "\nDOB: " + _dob + "\nVIP: " + _vip + "\nURL: " + _affiliate_url + "\nSource: " + _source + "\nFD: " + _first_deposit + "\nLD: " + _last_deposit + "\nDate Registered: " + _date_registered + "\nLast Login Time: " + _last_login_time "\nStatus: " + _status);
-
-                if (_display_count == 1)
-                {
-                    var header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},{19},{20}", "Brand", "Username", "Name", "Status", "Date Registered", "Last Login Date", "Last Deposit Date", "Contact Number", "Email", "VIP Level", "Registration Date", "Month Reg", "First Deposit Date", "First Deposit Month", "IP Address", "Affiliate", "Source", "Date of Birth", "User ID", "Wechat", "QQ");
-                    _DATA.AppendLine(header);
-                }
-                var data = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},{19},{20}", "YB", "\"" + _username + "\"", "\"" + _name + "\"", "\"" + _status + "\"", "\"" + _date_registered + "\"", "\"" + _last_login_time + "\"", "\"" + _last_deposit + "\"", "\"" + _phone + "\"", "\"" + _email + "\"", "\"" + _vip + "\"", "\"" + _date_registered + "\"", "\"" + _month_registered + "\"", "\"" + _first_deposit + "\"", "\"" + _month_first_deposit + "\"", "\"" + _ip_address + "\"", "\"" + _affiliate_url + "\"", "\"" + _source + "\"", "\"" + _dob + "\"", "\"" + "" + "\"", "\"" + "" + "\"", "\"" + "" + "\"");
-                _DATA.AppendLine(data);
-            }
-            
-            // SAVING TO EXCEL
-            string _current_datetime = DateTime.Now.ToString("yyyy-MM-dd");
-
-            label_yb_status.ForeColor = Color.FromArgb(78, 122, 159);
-            label_yb_status.Text = "status: saving excel... --- MEMBER LIST";
-
-            if (!Directory.Exists(__file_location + "\\Cronos Data"))
-            {
-                Directory.CreateDirectory(__file_location + "\\Cronos Data");
-            }
-
-            if (!Directory.Exists(__file_location + "\\Cronos Data\\YB"))
-            {
-                Directory.CreateDirectory(__file_location + "\\Cronos Data\\YB");
-            }
-
-            if (!Directory.Exists(__file_location + "\\Cronos Data\\YB\\" + _current_datetime))
-            {
-                Directory.CreateDirectory(__file_location + "\\Cronos Data\\YB\\" + _current_datetime);
-            }
-
-            string _folder_path_result = __file_location + "\\Cronos Data\\YB\\" + _current_datetime + "\\YB Registration.txt";
-            string _folder_path_result_xlsx = __file_location + "\\Cronos Data\\YB\\" + _current_datetime + "\\YB Registration.xlsx";
-
-            if (File.Exists(_folder_path_result))
-            {
-                File.Delete(_folder_path_result);
-            }
-
-            if (File.Exists(_folder_path_result_xlsx))
-            {
-                File.Delete(_folder_path_result_xlsx);
-            }
-
-            _DATA.ToString().Reverse();
-            File.WriteAllText(_folder_path_result, _DATA.ToString(), Encoding.UTF8);
-
-            Excel.Application app = new Excel.Application();
-            Excel.Workbook wb = app.Workbooks.Open(_folder_path_result, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing);
-            Excel.Worksheet worksheet = wb.ActiveSheet;
-            worksheet.Activate();
-            worksheet.Application.ActiveWindow.SplitRow = 1;
-            worksheet.Application.ActiveWindow.FreezePanes = true;
-            Excel.Range firstRow = (Excel.Range)worksheet.Rows[1];
-            //firstRow.AutoFilter(1,
-            //                    Type.Missing,
-            //                    Excel.XlAutoFilterOperator.xlAnd,
-            //                    Type.Missing,
-            //                    true);
-            //worksheet.Columns[6].NumberFormat = "MM/dd/yyyy";
-            Excel.Range usedRange = worksheet.UsedRange;
-            Excel.Range rows = usedRange.Rows;
-            int count = 0;
-            foreach (Excel.Range row in rows)
-            {
-                if (count == 0)
-                {
-                    Excel.Range firstCell = row.Cells[1];
-
-                    string firstCellValue = firstCell.Value as String;
-
-                    if (!string.IsNullOrEmpty(firstCellValue))
+                    else
                     {
-                        row.Interior.Color = Color.FromArgb(236, 103, 5);
-                        row.Font.Color = Color.FromArgb(255, 255, 255);
+                        _dob = "";
+                    }
+                    // -----
+                    JToken _vip = __jo.SelectToken("$.aaData[" + i + "].vipLevel").ToString();
+                    // -----
+                    JToken _affiliate_url = __jo.SelectToken("$.aaData[" + i + "].affiliateUrl").ToString();
+                    // -----
+                    string _source = "";
+                    char[] split = "*|*".ToCharArray();
+                    for (int i_s = 0; i_s < __getdata_affiliatelist.Count; i_s++)
+                    {
+                        string[] results = __getdata_affiliatelist[i_s].Split(split);
+                        if (results[0].Trim() == _affiliate_url.ToString())
+                        {
+                            _source = results[3].Trim();
+                            break;
+                        }
+                    }
+                    // -----
+                    string _fd_date = await ___REGISTRATION_FIRSTDEPOSITAsync(_username.ToString());
+                    string _first_fd_month = "";
+                    if (_fd_date != "")
+                    {
+                        DateTime _fd_date_replace = new DateTime(1970, 1, 1, 0, 0, 0, 0).AddSeconds(Math.Round(Convert.ToDouble(_fd_date.ToString()) / 1000d)).ToLocalTime();
+                        _fd_date = _fd_date_replace.ToString("yyyy-MM-dd");
+                        _first_fd_month = _fd_date_replace.ToString("yyyy-MM-01");
+                    }
+                    else
+                    {
+                        _fd_date = "";
+                    }
+                    // -----
+                    JToken _ld_date = __jo.SelectToken("$.aaData[" + i + "].lastDepositTime").ToString();
+                    if (_ld_date.ToString() != "")
+                    {
+                        DateTime _ld_date_replace = new DateTime(1970, 1, 1, 0, 0, 0, 0).AddSeconds(Math.Round(Convert.ToDouble(_ld_date.ToString()) / 1000d)).ToLocalTime();
+                        _ld_date = _ld_date_replace.ToString("yyyy-MM-dd");
+                    }
+                    else
+                    {
+                        _ld_date = "";
+                    }
+                    // -----
+                    JToken _registration_date = __jo.SelectToken("$.aaData[" + i + "].createTime").ToString();
+                    string _month_reg = "";
+                    if (_registration_date.ToString() != "")
+                    {
+                        DateTime _registration_date_replace = new DateTime(1970, 1, 1, 0, 0, 0, 0).AddSeconds(Math.Round(Convert.ToDouble(_registration_date.ToString()) / 1000d)).ToLocalTime();
+                        _registration_date = _registration_date_replace.ToString("yyyy-MM-dd HH:mm:ss");
+                        _month_reg = _registration_date_replace.ToString("yyyy-MM-01");
+
+                    }
+                    else
+                    {
+                        _registration_date = "";
+                    }
+                    // -----
+                    JToken _last_login_date = __jo.SelectToken("$.aaData[" + i + "].loginTime").ToString();
+                    if (_last_login_date.ToString() != "")
+                    {
+                        DateTime _last_login_date_replace = new DateTime(1970, 1, 1, 0, 0, 0, 0).AddSeconds(Math.Round(Convert.ToDouble(_last_login_date.ToString()) / 1000d)).ToLocalTime();
+                        _last_login_date = _last_login_date_replace.ToString("yyyy-MM-dd");
+                    }
+                    else
+                    {
+                        _last_login_date = "";
+                    }
+                    // -----
+                    JToken _ip_address = __jo.SelectToken("$.aaData[" + i + "].loginIp").ToString();
+                    // -----
+                    JToken _status = __jo.SelectToken("$.aaData[" + i + "].status").ToString();
+                    if (_status.ToString() == "0")
+                    {
+                        _status = "INACTIVATED";
+                    }
+                    else if (_status.ToString() == "1")
+                    {
+                        _status = "ACTIVE";
+                    }
+                    else if (_status.ToString() == "2")
+                    {
+                        _status = "SUSPEND";
+                    }
+                    else if (_status.ToString() == "3")
+                    {
+                        _status = "LOCKED";
+                    }
+                    else
+                    {
+                        _status = "";
                     }
 
-                    break;
+                    //MessageBox.Show("Username: " + _username + "\nName: " + _name + "\nEmail: " + _email + "\nPhone: " + _contact_number + "\nDOB: " + _dob + "\nVIP: " + _vip + "\nURL: " + _affiliate_url + "\nSource: " + _source + "\nFD: " + _fd_date + "\nLD: " + _ld_date + "\nDate Registered: " + _registration_date + "\nLast Login Time: " + _last_login_date "\nStatus: " + _status);
+
+                    if (_display_count == 1)
+                    {
+                        var header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},{19},{20}", "Brand", "Username", "Name", "Status", "Date Registered", "Last Login Date", "Last Deposit Date", "Contact Number", "Email", "VIP Level", "Registration Date", "Month Reg", "First Deposit Date", "First Deposit Month", "IP Address", "Affiliate", "Source", "Date of Birth", "User ID", "Wechat", "QQ");
+                        _DATA.AppendLine(header);
+                    }
+                    var data = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},{19},{20}", "YB", "\"" + _username + "\"", "\"" + _name + "\"", "\"" + _status + "\"", "\"" + _registration_date + "\"", "\"" + _last_login_date + "\"", "\"" + _ld_date + "\"", "\"" + _contact_number + "\"", "\"" + _email + "\"", "\"" + _vip + "\"", "\"" + _registration_date + "\"", "\"" + _month_reg + "\"", "\"" + _fd_date + "\"", "\"" + _first_fd_month + "\"", "\"" + _ip_address + "\"", "\"" + _affiliate_url + "\"", "\"" + _source + "\"", "\"" + _dob + "\"", "\"" + "" + "\"", "\"" + "" + "\"", "\"" + "" + "\"");
+                    _DATA.AppendLine(data);
                 }
 
-                count++;
+                if (__jo_count.ToString() != "0")
+                {
+                    // REGISTRATION SAVING TO EXCEL
+                    string _current_datetime = DateTime.Now.ToString("yyyy-MM-dd");
+
+                    label_yb_status.ForeColor = Color.FromArgb(78, 122, 159);
+                    label_yb_status.Text = "status: saving excel... --- MEMBER LIST";
+                    label_page_count.Text = "1 of 1";
+
+                    if (!Directory.Exists(__file_location + "\\Cronos Data"))
+                    {
+                        Directory.CreateDirectory(__file_location + "\\Cronos Data");
+                    }
+
+                    if (!Directory.Exists(__file_location + "\\Cronos Data\\YB"))
+                    {
+                        Directory.CreateDirectory(__file_location + "\\Cronos Data\\YB");
+                    }
+
+                    if (!Directory.Exists(__file_location + "\\Cronos Data\\YB\\" + _current_datetime))
+                    {
+                        Directory.CreateDirectory(__file_location + "\\Cronos Data\\YB\\" + _current_datetime);
+                    }
+
+                    string _folder_path_result = __file_location + "\\Cronos Data\\YB\\" + _current_datetime + "\\YB Registration.txt";
+                    string _folder_path_result_xlsx = __file_location + "\\Cronos Data\\YB\\" + _current_datetime + "\\YB Registration.xlsx";
+
+                    if (File.Exists(_folder_path_result))
+                    {
+                        File.Delete(_folder_path_result);
+                    }
+
+                    if (File.Exists(_folder_path_result_xlsx))
+                    {
+                        File.Delete(_folder_path_result_xlsx);
+                    }
+
+                    _DATA.ToString().Reverse();
+                    File.WriteAllText(_folder_path_result, _DATA.ToString(), Encoding.UTF8);
+
+                    Excel.Application app = new Excel.Application();
+                    Excel.Workbook wb = app.Workbooks.Open(_folder_path_result, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing);
+                    Excel.Worksheet worksheet = wb.ActiveSheet;
+                    worksheet.Activate();
+                    worksheet.Application.ActiveWindow.SplitRow = 1;
+                    worksheet.Application.ActiveWindow.FreezePanes = true;
+                    Excel.Range firstRow = (Excel.Range)worksheet.Rows[1];
+                    firstRow.AutoFilter(1,
+                                        Type.Missing,
+                                        Excel.XlAutoFilterOperator.xlAnd,
+                                        Type.Missing,
+                                        true);
+                    worksheet.Columns[5].NumberFormat = "MM/dd/yyyy";
+                    Excel.Range usedRange = worksheet.UsedRange;
+                    Excel.Range rows = usedRange.Rows;
+                    int count = 0;
+                    foreach (Excel.Range row in rows)
+                    {
+                        if (count == 0)
+                        {
+                            Excel.Range firstCell = row.Cells[1];
+
+                            string firstCellValue = firstCell.Value as string;
+
+                            if (!string.IsNullOrEmpty(firstCellValue))
+                            {
+                                row.Interior.Color = Color.FromArgb(236, 103, 5);
+                                row.Font.Color = Color.FromArgb(255, 255, 255);
+                            }
+
+                            break;
+                        }
+
+                        count++;
+                    }
+                    int i_;
+                    for (i_ = 1; i_ <= 21; i_++)
+                    {
+                        worksheet.Columns[i_].ColumnWidth = 20;
+                    }
+                    wb.SaveAs(_folder_path_result_xlsx, Excel.XlFileFormat.xlOpenXMLWorkbook, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Excel.XlSaveAsAccessMode.xlExclusive, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing);
+                    wb.Close();
+                    app.Quit();
+                    Marshal.ReleaseComObject(app);
+
+                    if (File.Exists(_folder_path_result))
+                    {
+                        File.Delete(_folder_path_result);
+                    }
+
+                    _DATA.Clear();
+                }
+
+                // REGISTRATION SEND TO DATABASE
+                // AUTO START
+
+
+                // next payment
+                Properties.Settings.Default.______start_detect = "2";
+                Properties.Settings.Default.Save();
+
+                panel_status.Visible = false;
+                label_yb_status.Text = "-";
+                label_page_count.Text = "-";
+                label_total_records.Text = "-";
+                button_start.Visible = true;
+                if (__is_autostart)
+                {
+                    comboBox_list.SelectedIndex = 1;
+                    button_start.PerformClick();
+                }
+                else
+                {
+                    panel_filter.Enabled = true;
+                }
             }
-            int i_;
-            for (i_ = 1; i_ <= 17; i_++)
+            catch (Exception err)
             {
-                worksheet.Columns[i_].ColumnWidth = 18;
-            }
-            wb.SaveAs(_folder_path_result_xlsx, Excel.XlFileFormat.xlOpenXMLWorkbook, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Excel.XlSaveAsAccessMode.xlExclusive, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing);
-            wb.Close();
-            app.Quit();
-            Marshal.ReleaseComObject(app);
+                __send++;
+                if (__send == 5)
+                {
+                    SendITSupport("There's a problem to the server, please re-open the application.");
+                    SendMyBot(err.ToString());
 
-            if (File.Exists(_folder_path_result))
+                    //Environment.Exit(0);
+                }
+                else
+                {
+                    await ___REGISTRATIONAsync();
+                }
+            }
+        }
+
+        private async Task ___PAYMENTAsync()
+        {
+            await ___PAYMENT_DEPOSITAsync();
+        }
+
+        private async Task ___BONUSAsync()
+        {
+            try
             {
-                File.Delete(_folder_path_result);
+                var cookie_manager = Cef.GetGlobalCookieManager();
+                var visitor = new CookieCollector();
+                cookie_manager.VisitUrlCookies(__url, true, visitor);
+                var cookies = await visitor.Task;
+                var cookie = CookieCollector.GetCookieHeader(cookies);
+                WebClient wc = new WebClient();
+                wc.Headers.Add("Cookie", cookie);
+                wc.Encoding = Encoding.UTF8;
+                wc.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
+
+                string start = dateTimePicker_start.Text;
+                start = start.Replace("-", "%2F");
+                start = start.Replace("00:00:00", "");
+
+                string end = dateTimePicker_end.Text;
+                end = end.Replace("-", "%2F");
+                end = end.Replace("00:00:00", "");
+
+                label_page_count.Text = "-";
+                byte[] result = await wc.DownloadDataTaskAsync("http://103.4.104.8/manager/ReportController/searchBonusReport?userName=&category=-1&type=-1&templateStatus=-1&createTimeStart=" + start + "&createTimeEnd=" + end + "&pageNumber=1&pageSize=" + __display_length + "&sortCondition=9&sortName=createTime&sortOrder=1&searchText=");
+                string responsebody = Encoding.UTF8.GetString(result);
+                var deserialize_object = JsonConvert.DeserializeObject(responsebody);
+                __jo = JObject.Parse(deserialize_object.ToString());
+                __jo_count = __jo.SelectToken("$.aaData");
+                label_page_count.Text = "1 of 1";
+                label_total_records.Text = "0 of " + __jo_count.Count().ToString("N0");
+                label_yb_status.Text = "status: getting data... --- BONUS REPORT";
+
+                // BONUS PROCESS DATA
+                StringBuilder _DATA = new StringBuilder();
+                int _display_count = 0;
+                
+                for (int i = 0; i < __jo_count.Count(); i++)
+                {
+                    Application.DoEvents();
+                    _display_count++;
+                    label_total_records.Text = _display_count.ToString("N0") + " of " + __jo_count.Count().ToString("N0");
+
+                    // -----
+                    JToken _username = __jo.SelectToken("$.aaData[" + i + "].userId").ToString();
+                    // -----
+                    JToken _submitted_date = __jo.SelectToken("$.aaData[" + i + "].createTime").ToString().Replace("/", "-");
+                    DateTime _submitted_date_replace = DateTime.ParseExact(_submitted_date.ToString(), "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
+                    string _month = "";
+                    string _date = "";
+                    _submitted_date = _submitted_date_replace.ToString("yyyy-MM-dd HH:mm:ss");
+                    _month = _submitted_date_replace.ToString("yyyy-MM-01");
+                    _date = _submitted_date_replace.ToString("yyyy-MM-dd");
+                    // -----
+                    JToken _updated_date = __jo.SelectToken("$.aaData[" + i + "].updateTime").ToString().Replace("/", "-");
+                    DateTime _updated_date_replace = DateTime.ParseExact(_updated_date.ToString(), "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
+                    _updated_date = _updated_date_replace.ToString("yyyy-MM-dd HH:mm:ss");
+                    // -----
+                    JToken _transaction_id = __jo.SelectToken("$.aaData[" + i + "].id").ToString();
+                    // -----
+                    JToken _bonus_code = __jo.SelectToken("$.aaData[" + i + "].templateCode").ToString();
+                    string _bonus_code_replace = Regex.Replace(_bonus_code.ToString(), @"\t|\n|\r", "");
+                    _bonus_code = _bonus_code_replace;
+                    // -----
+                    JToken _purpose = __jo.SelectToken("$.aaData[" + i + "].purpose").ToString();
+                    // -----
+                    JToken _amount = __jo.SelectToken("$.aaData[" + i + "].bonus").ToString();
+                    // -----
+                    JToken _vip = __jo.SelectToken("$.aaData[" + i + "].vipLevel").ToString();
+                    // ----- Transaction Time
+                    string _transaction_time = "";
+                    if (_updated_date.ToString() != "")
+                    {
+                        // duration time
+                        DateTime start_date = DateTime.ParseExact(_submitted_date.ToString(), "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
+                        DateTime end_date = DateTime.ParseExact(_updated_date.ToString(), "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
+                        TimeSpan span = end_date - start_date;
+
+                        // transaction time
+                        if (span.Hours.ToString().Length == 1)
+                        {
+                            _transaction_time += "0" + span.Hours + ":";
+                        }
+                        else
+                        {
+                            _transaction_time += span.Hours + ":";
+                        }
+                        if (span.Minutes.ToString().Length == 1)
+                        {
+                            _transaction_time += "0" + span.Minutes + ":";
+                        }
+                        else
+                        {
+                            _transaction_time += span.Minutes + ":";
+                        }
+                        if (span.Seconds.ToString().Length == 1)
+                        {
+                            _transaction_time += "0" + span.Seconds;
+                        }
+                        else
+                        {
+                            _transaction_time += span.Seconds;
+                        }
+                    }
+                    // ----- Bonus Category
+                    string _bonus_category = "";
+                    if (!_bonus_code.ToString().ToLower().Contains("no_bonus"))
+                    {
+                        try
+                        {
+                            if (!_username.ToString().ToLower().Contains("test"))
+                            {
+                                string _bonus_code_replace_ = "";
+                                foreach (char c in _bonus_code.ToString())
+                                {
+                                    if (c == ';')
+                                    {
+                                        break;
+                                    }
+                                    else
+                                    {
+                                        if (c != ' ')
+                                        {
+                                            _bonus_code_replace_ += c;
+                                        }
+                                    }
+                                }
+
+                                char[] split = "*|*".ToCharArray();
+                                for (int i_b = 0; i_b < __getdata_bonuscode.Count; i_b++)
+                                {
+                                    string[] results = __getdata_bonuscode[i_b].Split(split);
+                                    if (results[0].Trim() == _bonus_code_replace_)
+                                    {
+                                        _bonus_category = results[3].Trim();
+                                        if (_purpose.ToString() == "")
+                                        {
+                                            _purpose = results[6].Trim();
+                                        }
+                                        break;
+                                    }
+                                }
+
+                                if (_bonus_category == "")
+                                {
+                                    string get1 = _bonus_code.ToString().Substring(6, 3);
+
+                                    string get2 = get1.Substring(0, 2);
+                                    string get3 = get1.Substring(2);
+                                    string get4 = get1.Substring(0, 2);
+
+                                    //if (get2 == "FD" || get2 == "RA")
+                                    //{
+                                    //    get1 = _bonus_code.ToString().Substring(6, 4);
+                                    //    get2 = get1.Substring(0, 3);
+                                    //    get3 = get1.Substring(3);
+                                    //}
+
+                                    ArrayList items_code = new ArrayList(new string[] { "AD", "FDB", "DP", "PZ", "RF", "RAF", "RB", "SU", "TO", "RR", "CB", "GW", "RW", "TE" });
+                                    ArrayList items_bonus_category = new ArrayList(new string[] { "Adjustment", "FDB", "Deposit", "Prize", "Refer friend", "Refer friend", "Reload", "Signup Bonus", "Turnover", "Rebate", "Cashback", "Goodwill Bonus", "Reward", "Test" });
+                                    int count_ = 0;
+                                    foreach (var item in items_code)
+                                    {
+                                        if (get2 == item.ToString())
+                                        {
+                                            _bonus_category = items_bonus_category[count_].ToString();
+                                            break;
+                                        }
+
+                                        count_++;
+                                    }
+
+                                    if (_purpose.ToString() == "")
+                                    {
+                                        if (get3 == "0")
+                                        {
+                                            if (get4 == "FD" || get4 == "RA")
+                                            {
+                                                get1 = _bonus_code.ToString().Substring(6, 5);
+                                                get2 = get1.Substring(0, 4);
+                                                get3 = get1.Substring(4);
+                                            }
+                                            else
+                                            {
+                                                get1 = _bonus_code.ToString().Substring(6, 4);
+                                                get2 = get1.Substring(0, 3);
+                                                get3 = get1.Substring(3);
+                                            }
+                                        }
+
+                                        ArrayList items_code_ = new ArrayList(new string[] { "0", "1", "2", "3", "4" });
+                                        ArrayList items_bonus_category_ = new ArrayList(new string[] { "Retention", "Acquisition", "Conversion", "Retention", "Reactivation" });
+                                        int count__ = 0;
+                                        foreach (var item in items_code_)
+                                        {
+                                            if (get3 == item.ToString())
+                                            {
+                                                _purpose = items_bonus_category_[count__].ToString();
+                                                break;
+                                            }
+
+                                            count__++;
+                                        }
+                                    }
+
+                                    if (_bonus_category == "" && _purpose.ToString() == "")
+                                    {
+                                        _bonus_category = "Rebate";
+                                        _purpose = "Retention";
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                _bonus_category = "Other";
+                                _purpose = "Adjustment";
+                            }
+                        }
+                        catch (Exception err)
+                        {
+                            _bonus_category = "Other";
+                            _purpose = "Adjustment";
+
+                            SendMyBot(err.ToString());
+                        }
+
+                        if (_display_count == 1)
+                        {
+                            var header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12}", "Brand", "Month", "Date", "Transaction Time", "Transaction ID", "Username", "Bonus Code", "Bonus Category", "Purpose", "Amount", "VIP", "Updated by", "Product");
+                            _DATA.AppendLine(header);
+                        }
+                        var data = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12}", "YB", "\"" + _month + "\"", "\"" + _date + "\"", "\"" + _transaction_time + "\"", "\"" + _transaction_id + "\"", "\"" + _username + "\"", "\"" + _bonus_code + "\"", "\"" + _bonus_category + "\"", "\"" + _purpose + "\"", "\"" + _amount + "\"", "\"" + _vip + "\"", "\"" + "" + "\"", "\"" + "" + "\"");
+                        _DATA.AppendLine(data);
+                    }
+                }
+
+                if (__jo_count.ToString() != "0")
+                {
+                    // BONUS SAVING TO EXCEL
+                    string _current_datetime = DateTime.Now.ToString("yyyy-MM-dd");
+
+                    label_yb_status.ForeColor = Color.FromArgb(78, 122, 159);
+                    label_yb_status.Text = "status: saving excel... --- BONUS REPORT";
+
+                    if (!Directory.Exists(__file_location + "\\Cronos Data"))
+                    {
+                        Directory.CreateDirectory(__file_location + "\\Cronos Data");
+                    }
+
+                    if (!Directory.Exists(__file_location + "\\Cronos Data\\YB"))
+                    {
+                        Directory.CreateDirectory(__file_location + "\\Cronos Data\\YB");
+                    }
+
+                    if (!Directory.Exists(__file_location + "\\Cronos Data\\YB\\" + _current_datetime))
+                    {
+                        Directory.CreateDirectory(__file_location + "\\Cronos Data\\YB\\" + _current_datetime);
+                    }
+
+                    if (!Directory.Exists(__file_location + "\\Cronos Data\\YB\\" + _current_datetime + "\\Bonus Report"))
+                    {
+                        Directory.CreateDirectory(__file_location + "\\Cronos Data\\YB\\" + _current_datetime + "\\Bonus Report");
+                    }
+
+                    string _folder_path_result = __file_location + "\\Cronos Data\\YB\\" + _current_datetime + "\\Bonus Report\\YB_BonusReport_" + _current_datetime + "_1.txt";
+                    string _folder_path_result_xlsx = __file_location + "\\Cronos Data\\YB\\" + _current_datetime + "\\Bonus Report\\YB_BonusReport_" + _current_datetime + "_1.xlsx";
+
+                    if (File.Exists(_folder_path_result))
+                    {
+                        File.Delete(_folder_path_result);
+                    }
+
+                    if (File.Exists(_folder_path_result_xlsx))
+                    {
+                        File.Delete(_folder_path_result_xlsx);
+                    }
+
+                    _DATA.ToString().Reverse();
+
+                    using (StreamWriter file = new StreamWriter(_folder_path_result, true, Encoding.UTF8))
+                    {
+                        file.Write(_DATA.ToString());
+                    }
+
+                    _DATA.Clear();
+                }
+
+                label_yb_status.Text = "status: doing calculation... --- A-BONUS RECORD";
+                await ___BONUS_ADJUSTMENTAsync();
             }
+            catch (Exception err)
+            {
+                __send++;
+                if (__send == 5)
+                {
+                    SendITSupport("There's a problem to the server, please re-open the application.");
+                    SendMyBot(err.ToString());
 
-            _DATA.Clear();
+                    //Environment.Exit(0);
+                }
+                else
+                {
+                    await ___BONUSAsync();
+                }
+            }
         }
 
-        private void ___PAYMENT()
+        private async Task ___TURNOVERAsync()
         {
+            try
+            {
+                var cookie_manager = Cef.GetGlobalCookieManager();
+                var visitor = new CookieCollector();
+                cookie_manager.VisitUrlCookies(__url, true, visitor);
+                var cookies = await visitor.Task;
+                var cookie = CookieCollector.GetCookieHeader(cookies);
+                WebClient wc = new WebClient();
+                wc.Headers.Add("Cookie", cookie);
+                wc.Encoding = Encoding.UTF8;
+                wc.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
 
-        }
+                string start = dateTimePicker_start.Text;
+                start = start.Replace("-", "%2F");
+                start = start.Replace("00:00:00", "");
 
-        private void ___BONUS()
-        {
+                string end = dateTimePicker_end.Text;
+                end = end.Replace("-", "%2F");
+                end = end.Replace("00:00:00", "");
 
-        }
+                label_page_count.Text = "-";
+                byte[] result = await wc.DownloadDataTaskAsync("http://103.4.104.8/manager/ReportController/searchTurnReport?userName=&type=-1&placedDateStart=" + start + "&placedDateEnd=" + end + "&pageNumber=1&pageSize=" + __display_length + "&sortCondition=3&sortName=summaryDate&sortOrder=1&searchText=");
+                string responsebody = Encoding.UTF8.GetString(result);
+                var deserialize_object = JsonConvert.DeserializeObject(responsebody);
+                __jo = JObject.Parse(deserialize_object.ToString());
+                __jo_count = __jo.SelectToken("$.aaData");
+                label_page_count.Text = "1 of 1";
+                label_total_records.Text = "0 of " + __jo_count.Count().ToString("N0");
+                label_yb_status.Text = "status: getting data... --- TURNOVER RECORD";
 
-        private void ___TURNOVER()
-        {
+                // TURNOVER PROCESS DATA
+                StringBuilder _DATA = new StringBuilder();
+                int _display_count = 0;
 
+                for (int i = 0; i < __jo_count.Count(); i++)
+                {
+                    Application.DoEvents();
+                    _display_count++;
+                    label_total_records.Text = _display_count.ToString("N0") + " of " + __jo_count.Count().ToString("N0");
+
+                    // -----
+                    JToken _member = __jo.SelectToken("$.aaData[" + i + "].userId").ToString();
+                    // -----
+                    JToken _provider = __jo.SelectToken("$.aaData[" + i + "].vendorId").ToString();
+                    // -----
+                    JToken _category = __jo.SelectToken("$.aaData[" + i + "].gameType").ToString();
+                    // -----
+                    JToken _bet_count = __jo.SelectToken("$.aaData[" + i + "].betCount").ToString();
+                    // -----
+                    JToken _vip = __jo.SelectToken("$.aaData[" + i + "].vipLevel").ToString();
+                    // -----
+                    JToken _stake = __jo.SelectToken("$.aaData[" + i + "].sumBetAmount").ToString();
+                    // -----
+                    JToken _company_wl = __jo.SelectToken("$.aaData[" + i + "].turnover").ToString();
+                    // -----
+                    JToken _submitted_date = __jo.SelectToken("$.aaData[" + i + "].summaryDate").ToString();
+
+                    MessageBox.Show("_member: " + _member + "\n_provider: " + _provider + "\n_category: " + _category + "\n_bet_count: " + _bet_count + "" +
+                        "\n_vip: " + _vip + "\n_stake: " + _stake + "\n_company_wl: " + _company_wl + "\n_submitted_date: " + _submitted_date);
+
+                    //if (_display_count == 1)
+                    //{
+                    //    var header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12}", "Brand", "Month", "Date", "Transaction Time", "Transaction ID", "Username", "Bonus Code", "Bonus Category", "Purpose", "Amount", "VIP", "Updated by", "Product");
+                    //    _DATA.AppendLine(header);
+                    //}
+                    //var data = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12}", "YB", "\"" + _month + "\"", "\"" + _date + "\"", "\"" + _transaction_time + "\"", "\"" + _transaction_id + "\"", "\"" + _username + "\"", "\"" + _bonus_code + "\"", "\"" + _bonus_category + "\"", "\"" + _purpose + "\"", "\"" + _amount + "\"", "\"" + _vip + "\"", "\"" + "" + "\"", "\"" + "" + "\"");
+                    //_DATA.AppendLine(data);
+                }
+            }
+            catch (Exception err)
+            {
+                __send++;
+                if (__send == 5)
+                {
+                    SendITSupport("There's a problem to the server, please re-open the application.");
+                    SendMyBot(err.ToString());
+
+                    //Environment.Exit(0);
+                }
+                else
+                {
+                    await ___TURNOVERAsync();
+                }
+            }
         }
 
         private void ___BET()
         {
-
+            // /manager/ReportController/searchBetReport
+            // /manager/ReportController/downloadBetReport?fileName=bet_20190219_030117&realName=bet_20190219_030117_41
         }
-        
+
         private async Task<string> ___REGISTRATION_FIRSTDEPOSITAsync(string username)
         {
             var cookie_manager = Cef.GetGlobalCookieManager();
@@ -972,8 +1420,1124 @@ namespace YB_Cronos_Data
             string responsebody = Encoding.UTF8.GetString(result);
             var deserialize_object = JsonConvert.DeserializeObject(responsebody);
             JObject _jo = JObject.Parse(deserialize_object.ToString());
-            JToken _first_deposit_time = _jo.SelectToken("$.firstDepositTime").ToString();
-            return _first_deposit_time.ToString();
+            JToken _fd_date_time = _jo.SelectToken("$.firstDepositTime").ToString();
+            return _fd_date_time.ToString();
+        }
+        
+        private async Task<string> ___REGISTRATION_LASTDEPOSITAsync(string username)
+        {
+            var cookie_manager = Cef.GetGlobalCookieManager();
+            var visitor = new CookieCollector();
+            cookie_manager.VisitUrlCookies(__url, true, visitor);
+            var cookies = await visitor.Task;
+            var cookie = CookieCollector.GetCookieHeader(cookies);
+            WebClient wc = new WebClient();
+            wc.Headers.Add("Cookie", cookie);
+            wc.Encoding = Encoding.UTF8;
+            wc.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
+
+            byte[] result = await wc.DownloadDataTaskAsync("http://103.4.104.8/manager/member/getProfileOverview?userId=" + username);
+            string responsebody = Encoding.UTF8.GetString(result);
+            var deserialize_object = JsonConvert.DeserializeObject(responsebody);
+            JObject _jo = JObject.Parse(deserialize_object.ToString());
+            JToken _ld_date_time = _jo.SelectToken("$.lastDepositTime").ToString();
+            return _ld_date_time.ToString();
+        }
+
+        private async Task<string> ___PAYMENT_REMARKAsync(string id)
+        {
+            var cookie_manager = Cef.GetGlobalCookieManager();
+            var visitor = new CookieCollector();
+            cookie_manager.VisitUrlCookies(__url, true, visitor);
+            var cookies = await visitor.Task;
+            var cookie = CookieCollector.GetCookieHeader(cookies);
+            WebClient wc = new WebClient();
+            wc.Headers.Add("Cookie", cookie);
+            wc.Encoding = Encoding.UTF8;
+            wc.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
+
+            byte[] result = await wc.DownloadDataTaskAsync("http://103.4.104.8/manager/payment/getAdjustmentDetail?id=" + id);
+            string responsebody = Encoding.UTF8.GetString(result);
+            var deserialize_object = JsonConvert.DeserializeObject(responsebody);
+            JObject _jo = JObject.Parse(deserialize_object.ToString());
+            JToken _payment_remark = _jo.SelectToken("$.remark").ToString();
+            string _payment_remark_replace = Regex.Replace(_payment_remark.ToString(), @"\t|\n|\r", "");
+            _payment_remark = _payment_remark_replace;
+            return _payment_remark.ToString();
+        }
+
+        private async Task ___PAYMENT_DEPOSITAsync()
+        {
+            try
+            {
+                var cookie_manager = Cef.GetGlobalCookieManager();
+                var visitor = new CookieCollector();
+                cookie_manager.VisitUrlCookies(__url, true, visitor);
+                var cookies = await visitor.Task;
+                var cookie = CookieCollector.GetCookieHeader(cookies);
+                WebClient wc = new WebClient();
+                wc.Headers.Add("Cookie", cookie);
+                wc.Encoding = Encoding.UTF8;
+                wc.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
+
+                string start = dateTimePicker_start.Text;
+                start = start.Replace("-", "%2F");
+                start = start.Replace(" ", "+");
+                start = start.Replace(":", "%3A");
+
+                string end = dateTimePicker_end.Text;
+                end = end.Replace("-", "%2F");
+                end = end.Replace(" ", "+");
+                end = end.Replace(":", "%3A");
+
+                label_page_count.Text = "-";
+                byte[] result = await wc.DownloadDataTaskAsync("http://103.4.104.8/manager/payment/searchDeposit?transactionId=&referenceNo=&userId=&status=9999&type=0&toBankIdOrBranch=-1&createDateStart=" + start + "&createDateEnd=" + end + "&vipLevel=-1&approvedDateStart=&approvedDateEnd=&pageNumber=1&pageSize=" + __display_length +"&sortCondition=4&sortName=createTime&sortOrder=1&searchText=");
+                string responsebody = Encoding.UTF8.GetString(result);
+                var deserialize_object = JsonConvert.DeserializeObject(responsebody);
+                __jo = JObject.Parse(deserialize_object.ToString());
+                __jo_count = __jo.SelectToken("$.aaData");
+                label_page_count.Text = "1 of 1";
+                label_total_records.Text = "0 of " + __jo_count.Count().ToString("N0");
+                label_yb_status.Text = "status: getting data... --- DEPOSIT RECORD";
+
+                // PAYMENT DEPOSIT PROCESS DATA
+                StringBuilder _DATA = new StringBuilder();
+                int _display_count = 0;
+                
+                for (int i = 0; i < __jo_count.Count(); i++)
+                {
+                    Application.DoEvents();
+                    _display_count++;
+                    label_total_records.Text = _display_count.ToString("N0") + " of " + __jo_count.Count().ToString("N0");
+                    
+                    // -----
+                    JToken _member = __jo.SelectToken("$.aaData[" + i + "].userId").ToString();
+                    // -----
+                    JToken _transaction_id = __jo.SelectToken("$.aaData[" + i + "].id").ToString();
+                    // -----
+                    JToken _amount = __jo.SelectToken("$.aaData[" + i + "].amount").ToString();
+                    // -----
+                    JToken _vip = __jo.SelectToken("$.aaData[" + i + "].vipLevel").ToString();
+                    // -----
+                    string _fd_date = await ___REGISTRATION_FIRSTDEPOSITAsync(_member.ToString());
+                    string _ld_date = await ___REGISTRATION_LASTDEPOSITAsync(_member.ToString());
+                    string _first_fd_month = "";
+                    if (_fd_date != "")
+                    {
+                        DateTime _fd_date_replace = new DateTime(1970, 1, 1, 0, 0, 0, 0).AddSeconds(Math.Round(Convert.ToDouble(_fd_date.ToString()) / 1000d)).ToLocalTime();
+                        _fd_date = _fd_date_replace.ToString("MM/dd/yyyy");
+                        _first_fd_month = _fd_date_replace.ToString("yyyy-MM-01");
+                    }
+                    else
+                    {
+                        _fd_date = "";
+                    }
+                    if (_ld_date != "")
+                    {
+                        DateTime _ld_date_replace = new DateTime(1970, 1, 1, 0, 0, 0, 0).AddSeconds(Math.Round(Convert.ToDouble(_ld_date.ToString()) / 1000d)).ToLocalTime();
+                        _ld_date = _ld_date_replace.ToString("yyyy-MM-dd");
+                    }
+                    else
+                    {
+                        _ld_date = "";
+                    }
+                    // -----
+                    JToken _payment_type = __jo.SelectToken("$.aaData[" + i + "].type").ToString();
+                    if (_payment_type.ToString() == "1")
+                    {
+                        _payment_type = "Deposit";
+                    }
+                    else if (_payment_type.ToString() == "2")
+                    {
+                        _payment_type = "Payment Gateway";
+                    }
+                    else
+                    {
+                        _payment_type = "";
+                    }
+                    // -----
+                    JToken _status = __jo.SelectToken("$.aaData[" + i + "].status").ToString();
+                    if (_status.ToString() == "0")
+                    {
+                        _status = "Pending";
+                    }
+                    else if (_status.ToString() == "2")
+                    {
+                        _status = "Approved";
+                    }
+                    else if (_status.ToString() == "-2")
+                    {
+                        _status = "Rejected";
+                    }
+                    else
+                    {
+                        _status = "";
+                    }
+                    // -----
+                    JToken _pg_company = __jo.SelectToken("$.aaData[" + i + "].toBankName").ToString();
+                    // -----
+                    JToken _pg_type = __jo.SelectToken("$.aaData[" + i + "].toPaymentType").ToString();
+                    // -----
+                    JToken _submitted_date = __jo.SelectToken("$.aaData[" + i + "].createTime").ToString();
+                    string _month = "";
+                    string _date = "";
+                    if (_submitted_date.ToString() != "")
+                    {
+                        DateTime _submitted_date_replace = new DateTime(1970, 1, 1, 0, 0, 0, 0).AddSeconds(Math.Round(Convert.ToDouble(_submitted_date.ToString()) / 1000d)).ToLocalTime();
+                        _submitted_date = _submitted_date_replace.ToString("yyyy-MM-dd HH:mm:ss");
+                        _month = _submitted_date_replace.ToString("yyyy-MM-01");
+                        _date = _submitted_date_replace.ToString("yyyy-MM-dd");
+                    }
+                    else
+                    {
+                        _submitted_date = "";
+                    }
+                    // -----
+                    JToken _updated_date = __jo.SelectToken("$.aaData[" + i + "].approvedTime").ToString();
+                    string _time = "";
+                    if (_updated_date.ToString() != "")
+                    {
+                        DateTime _updated_date_replace = new DateTime(1970, 1, 1, 0, 0, 0, 0).AddSeconds(Math.Round(Convert.ToDouble(_updated_date.ToString()) / 1000d)).ToLocalTime();
+                        _updated_date = _updated_date_replace.ToString("yyyy-MM-dd HH:mm:ss");
+                        _time = _updated_date_replace.ToString("yyyy-MM-dd HH:mm:ss");
+                    }
+                    else
+                    {
+                        _updated_date = "";
+                    }
+                    // ----- Duration Time && Transaction Time
+                    string _duration_time = "";
+                    string _transaction_time = "";
+                    if (_updated_date.ToString() != "")
+                    {
+                        // duration time
+                        DateTime start_date = DateTime.ParseExact(_submitted_date.ToString(), "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
+                        DateTime end_date = DateTime.ParseExact(_updated_date.ToString(), "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
+                        TimeSpan span = end_date - start_date;
+                        double totalMinutes = Math.Floor(span.TotalMinutes);
+                        if (totalMinutes <= 5)
+                        {
+                            // 0-5
+                            _duration_time = "0-5min";
+                        }
+                        else if (totalMinutes <= 10)
+                        {
+                            // 6-10
+                            _duration_time = "6-10min";
+                        }
+                        else if (totalMinutes <= 15)
+                        {
+                            // 11-15
+                            _duration_time = "11-15min";
+                        }
+                        else if (totalMinutes <= 20)
+                        {
+                            // 16-20
+                            _duration_time = "16-20min";
+                        }
+                        else if (totalMinutes <= 25)
+                        {
+                            // 21-25
+                            _duration_time = "21-25min";
+                        }
+                        else if (totalMinutes <= 30)
+                        {
+                            // 26-30
+                            _duration_time = "26-30min";
+                        }
+                        else if (totalMinutes <= 60)
+                        {
+                            // 31-60
+                            _duration_time = "31-60min";
+                        }
+                        else if (totalMinutes >= 61)
+                        {
+                            // >60
+                            _duration_time = ">60min";
+                        }
+
+                        // transaction time
+                        if (span.Hours.ToString().Length == 1)
+                        {
+                            _transaction_time += "0" + span.Hours + ":";
+                        }
+                        else
+                        {
+                            _transaction_time += span.Hours + ":";
+                        }
+                        if (span.Minutes.ToString().Length == 1)
+                        {
+                            _transaction_time += "0" + span.Minutes + ":";
+                        }
+                        else
+                        {
+                            _transaction_time += span.Minutes + ":";
+                        }
+                        if (span.Seconds.ToString().Length == 1)
+                        {
+                            _transaction_time += "0" + span.Seconds;
+                        }
+                        else
+                        {
+                            _transaction_time += span.Seconds;
+                        }
+                    }
+                    // ----- Retained && New && Reactivated
+                    string _retained = "";
+                    string _new = "";
+                    string _reactivated = "";
+                    if (_fd_date != "" && _ld_date != "")
+                    {
+                        DateTime _fd_date_ = DateTime.ParseExact(_fd_date, "MM/dd/yyyy", CultureInfo.InvariantCulture);
+                        DateTime _ld_date_ = DateTime.ParseExact(_ld_date, "yyyy-MM-dd", CultureInfo.InvariantCulture);
+                        
+                        var _last2months = DateTime.Today.AddMonths(-2);
+                        DateTime _last2months_ = DateTime.ParseExact(_last2months.ToString("yyyy-MM-dd"), "yyyy-MM-dd", CultureInfo.InvariantCulture);
+                        if (_ld_date_ >= _last2months_)
+                        {
+                            _retained = "Retained";
+                        }
+                        else
+                        {
+                            _retained = "Not Retained";
+                        }
+
+                        string _month_ = DateTime.Now.Month.ToString();
+                        string _year_ = DateTime.Now.Year.ToString();
+                        string _year_month = _year_ + "-" + _month_;
+
+                        // new
+                        if (_fd_date_.ToString("yyyy-MM") == _year_month)
+                        {
+                            _new = "New";
+                        }
+                        else
+                        {
+                            _new = "Not New";
+                        }
+
+                        // reactivated
+                        if (_retained == "Not Retained" && _new == "Not New")
+                        {
+                            _reactivated = "Reactivated";
+                        }
+                        else
+                        {
+                            _reactivated = "Not Reactivated";
+                        }
+                    }
+                    
+                    if (_display_count == 1)
+                    {
+                        var header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},{19},{20}", "Brand", "Month", "Date", "Time", "Submitted Date", "Updated Date", "Member", "Payment Type", "Transaction ID", "Amount", "Transaction Time", "Transaction Type", "Duration Time", "VIP", "Status", "PG Company", "PG Type", "Retained", "FD Date", "New", "Reactivated");
+                        _DATA.AppendLine(header);
+                    }
+                    var data = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},{19},{20}", "YB", "\"" + _month + "\"", "\"" + _date + "\"", "\"" + _time + "\"", "\"" + _submitted_date + "\"", "\"" + _updated_date + "\"", "\"" + _member + "\"", "\"" + _payment_type + "\"", "\"" + _transaction_id + "\"", "\"" + _amount + "\"", "\"" + _transaction_time + "\"", "\"" + "Deposit" + "\"", "\"" + _duration_time + "\"", "\"" + _vip + "\"", "\"" + _status + "\"", "\"" + _pg_company + "\"", "\"" + _pg_type + "\"", "\"" + _retained + "\"", "\"" + _fd_date + "\"", "\"" + _new + "\"", "\"" + _reactivated + "\"");
+                    _DATA.AppendLine(data);
+                }
+
+                if (__jo_count.ToString() != "0")
+                {
+                    // PAYMENT DEPOSIT SAVING TO EXCEL
+                    string _current_datetime = DateTime.Now.ToString("yyyy-MM-dd");
+
+                    label_yb_status.ForeColor = Color.FromArgb(78, 122, 159);
+                    label_yb_status.Text = "status: saving excel... --- DEPOSIT RECORD";
+
+                    if (!Directory.Exists(__file_location + "\\Cronos Data"))
+                    {
+                        Directory.CreateDirectory(__file_location + "\\Cronos Data");
+                    }
+
+                    if (!Directory.Exists(__file_location + "\\Cronos Data\\YB"))
+                    {
+                        Directory.CreateDirectory(__file_location + "\\Cronos Data\\YB");
+                    }
+
+                    if (!Directory.Exists(__file_location + "\\Cronos Data\\YB\\" + _current_datetime))
+                    {
+                        Directory.CreateDirectory(__file_location + "\\Cronos Data\\YB\\" + _current_datetime);
+                    }
+
+                    if (!Directory.Exists(__file_location + "\\Cronos Data\\YB\\" + _current_datetime + "\\Payment Report"))
+                    {
+                        Directory.CreateDirectory(__file_location + "\\Cronos Data\\YB\\" + _current_datetime + "\\Payment Report");
+                    }
+
+                    string _folder_path_result = __file_location + "\\Cronos Data\\YB\\" + _current_datetime + "\\Payment Report\\YB_PaymentReport_" + _current_datetime + "_1.txt";
+                    string _folder_path_result_xlsx = __file_location + "\\Cronos Data\\YB\\" + _current_datetime + "\\Payment Report\\YB_PaymentReport_" + _current_datetime + "_1.xlsx";
+
+                    if (File.Exists(_folder_path_result))
+                    {
+                        File.Delete(_folder_path_result);
+                    }
+
+                    if (File.Exists(_folder_path_result_xlsx))
+                    {
+                        File.Delete(_folder_path_result_xlsx);
+                    }
+
+                    _DATA.ToString().Reverse();
+
+                    using (StreamWriter file = new StreamWriter(_folder_path_result, true, Encoding.UTF8))
+                    {
+                        file.Write(_DATA.ToString());
+                    }
+
+                    _DATA.Clear();
+                }
+
+                label_yb_status.Text = "status: doing calculation... --- WITHDRAWAL RECORD";
+                await ___PAYMENT_WITHDRAWALAsync();
+            }
+            catch (Exception err)
+            {
+                __send++;
+                if (__send == 5)
+                {
+                    SendITSupport("There's a problem to the server, please re-open the application.");
+                    SendMyBot(err.ToString());
+                    MessageBox.Show(err.ToString());
+
+                    //Environment.Exit(0);
+                }
+                else
+                {
+                    await ___PAYMENT_DEPOSITAsync();
+                }
+            }
+        }
+
+        private async Task ___PAYMENT_WITHDRAWALAsync()
+        {
+            try
+            {
+                var cookie_manager = Cef.GetGlobalCookieManager();
+                var visitor = new CookieCollector();
+                cookie_manager.VisitUrlCookies(__url, true, visitor);
+                var cookies = await visitor.Task;
+                var cookie = CookieCollector.GetCookieHeader(cookies);
+                WebClient wc = new WebClient();
+                wc.Headers.Add("Cookie", cookie);
+                wc.Encoding = Encoding.UTF8;
+                wc.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
+
+                string start = dateTimePicker_start.Text;
+                start = start.Replace("-", "%2F");
+                start = start.Replace(" ", "+");
+                start = start.Replace(":", "%3A");
+
+                string end = dateTimePicker_end.Text;
+                end = end.Replace("-", "%2F");
+                end = end.Replace(" ", "+");
+                end = end.Replace(":", "%3A");
+
+                label_page_count.Text = "-";
+                byte[] result = await wc.DownloadDataTaskAsync("http://103.4.104.8/manager/payment/searchWithdrawal?transactionId=&userId=&vipLevel=-1&status=9999&createDateStart=" + start + "&createDateEnd=" + end + "&verifyDateStart=&verifyDateEnd=&approvedDateStart=&approvedDateEnd=&pageNumber=1&pageSize=" + __display_length + "&sortCondition=4&sortName=createTime&sortOrder=1&searchText=");
+                string responsebody = Encoding.UTF8.GetString(result);
+                var deserialize_object = JsonConvert.DeserializeObject(responsebody);
+                __jo = JObject.Parse(deserialize_object.ToString());
+                __jo_count = __jo.SelectToken("$.aaData");
+                label_page_count.Text = "1 of 1";
+                label_total_records.Text = "0 of " + __jo_count.Count().ToString("N0");
+                label_yb_status.Text = "status: getting data... --- WITHDRAWAL RECORD";
+
+                // PAYMENT WITHDRAWAL PROCESS DATA
+                StringBuilder _DATA = new StringBuilder();
+                int _display_count = 0;
+                
+                for (int i = 0; i < __jo_count.Count(); i++)
+                {
+                    Application.DoEvents();
+                    _display_count++;
+                    label_total_records.Text = _display_count.ToString("N0") + " of " + __jo_count.Count().ToString("N0");
+
+                    // -----
+                    JToken _member = __jo.SelectToken("$.aaData[" + i + "].userId").ToString();
+                    // -----
+                    JToken _transaction_id = __jo.SelectToken("$.aaData[" + i + "].id").ToString();
+                    // -----
+                    JToken _amount = __jo.SelectToken("$.aaData[" + i + "].amount").ToString();
+                    // -----
+                    JToken _vip = __jo.SelectToken("$.aaData[" + i + "].vipLevel").ToString();
+                    // -----
+                    string _fd_date = await ___REGISTRATION_FIRSTDEPOSITAsync(_member.ToString());
+                    string _ld_date = await ___REGISTRATION_LASTDEPOSITAsync(_member.ToString());
+                    string _first_fd_month = "";
+                    if (_fd_date != "")
+                    {
+                        DateTime _fd_date_replace = new DateTime(1970, 1, 1, 0, 0, 0, 0).AddSeconds(Math.Round(Convert.ToDouble(_fd_date.ToString()) / 1000d)).ToLocalTime();
+                        _fd_date = _fd_date_replace.ToString("MM/dd/yyyy");
+                        _first_fd_month = _fd_date_replace.ToString("yyyy-MM-01");
+                    }
+                    else
+                    {
+                        _fd_date = "";
+                    }
+                    if (_ld_date != "")
+                    {
+                        DateTime _ld_date_replace = new DateTime(1970, 1, 1, 0, 0, 0, 0).AddSeconds(Math.Round(Convert.ToDouble(_ld_date.ToString()) / 1000d)).ToLocalTime();
+                        _ld_date = _ld_date_replace.ToString("yyyy-MM-dd");
+                    }
+                    else
+                    {
+                        _ld_date = "";
+                    }
+                    // -----
+                    JToken _status = __jo.SelectToken("$.aaData[" + i + "].status").ToString();
+                    if (_status.ToString() == "0")
+                    {
+                        _status = "Pending";
+                    }
+                    else if (_status.ToString() == "2")
+                    {
+                        _status = "Approved";
+                    }
+                    else if (_status.ToString() == "-2")
+                    {
+                        _status = "Rejected";
+                    }
+                    else
+                    {
+                        _status = "";
+                    }
+                    // -----
+                    JToken _submitted_date = __jo.SelectToken("$.aaData[" + i + "].createTime").ToString();
+                    string _month = "";
+                    string _date = "";
+                    if (_submitted_date.ToString() != "")
+                    {
+                        DateTime _submitted_date_replace = new DateTime(1970, 1, 1, 0, 0, 0, 0).AddSeconds(Math.Round(Convert.ToDouble(_submitted_date.ToString()) / 1000d)).ToLocalTime();
+                        _submitted_date = _submitted_date_replace.ToString("yyyy-MM-dd HH:mm:ss");
+                        _month = _submitted_date_replace.ToString("yyyy-MM-01");
+                        _date = _submitted_date_replace.ToString("yyyy-MM-dd");
+                    }
+                    else
+                    {
+                        _submitted_date = "";
+                    }
+                    // -----
+                    JToken _updated_date = __jo.SelectToken("$.aaData[" + i + "].approvedTime").ToString();
+                    string _time = "";
+                    if (_updated_date.ToString() != "")
+                    {
+                        DateTime _updated_date_replace = new DateTime(1970, 1, 1, 0, 0, 0, 0).AddSeconds(Math.Round(Convert.ToDouble(_updated_date.ToString()) / 1000d)).ToLocalTime();
+                        _updated_date = _updated_date_replace.ToString("yyyy-MM-dd HH:mm:ss");
+                        _time = _updated_date_replace.ToString("yyyy-MM-dd HH:mm:ss");
+                    }
+                    else
+                    {
+                        _updated_date = "";
+                    }
+                    // ----- Duration Time && Transaction Time
+                    // duration time
+                    string _duration_time = "";
+                    DateTime start_date = DateTime.ParseExact(_submitted_date.ToString(), "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
+                    DateTime end_date = DateTime.ParseExact(_submitted_date.ToString(), "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
+                    try
+                    {
+                        end_date = DateTime.ParseExact(_updated_date.ToString(), "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
+                    }
+                    catch (Exception err)
+                    {
+                        JToken _verified_date = __jo.SelectToken("$.aaData[" + i + "].verifiedTime").ToString();
+                        if (_verified_date.ToString() != "")
+                        {
+                            DateTime _verified_date_replace = new DateTime(1970, 1, 1, 0, 0, 0, 0).AddSeconds(Math.Round(Convert.ToDouble(_verified_date.ToString()) / 1000d)).ToLocalTime();
+                            _verified_date = _verified_date_replace.ToString("yyyy-MM-dd HH:mm:ss");
+                        }
+                        else
+                        {
+                            _verified_date = "";
+                        }
+
+                        end_date = DateTime.ParseExact(_verified_date.ToString(), "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
+                    }
+                    TimeSpan span = end_date - start_date;
+                    double totalMinutes = Math.Floor(span.TotalMinutes);
+                    if (totalMinutes <= 5)
+                    {
+                        // 0-5
+                        _duration_time = "0-5min";
+                    }
+                    else if (totalMinutes <= 10)
+                    {
+                        // 6-10
+                        _duration_time = "6-10min";
+                    }
+                    else if (totalMinutes <= 15)
+                    {
+                        // 11-15
+                        _duration_time = "11-15min";
+                    }
+                    else if (totalMinutes <= 20)
+                    {
+                        // 16-20
+                        _duration_time = "16-20min";
+                    }
+                    else if (totalMinutes <= 25)
+                    {
+                        // 21-25
+                        _duration_time = "21-25min";
+                    }
+                    else if (totalMinutes <= 30)
+                    {
+                        // 26-30
+                        _duration_time = "26-30min";
+                    }
+                    else if (totalMinutes <= 60)
+                    {
+                        // 31-60
+                        _duration_time = "31-60min";
+                    }
+                    else if (totalMinutes >= 61)
+                    {
+                        // >60
+                        _duration_time = ">60min";
+                    }
+                    
+                    // transaction time
+                    string _transaction_time = "";
+                    if (span.Hours.ToString().Length == 1)
+                    {
+                        _transaction_time += "0" + span.Hours + ":";
+                    }
+                    else
+                    {
+                        _transaction_time += span.Hours + ":";
+                    }
+                    if (span.Minutes.ToString().Length == 1)
+                    {
+                        _transaction_time += "0" + span.Minutes + ":";
+                    }
+                    else
+                    {
+                        _transaction_time += span.Minutes + ":";
+                    }
+                    if (span.Seconds.ToString().Length == 1)
+                    {
+                        _transaction_time += "0" + span.Seconds;
+                    }
+                    else
+                    {
+                        _transaction_time += span.Seconds;
+                    }
+                    // ----- Retained && New && Reactivated
+                    string _retained = "";
+                    string _new = "";
+                    string _reactivated = "";
+                    if (_fd_date != "" && _ld_date != "")
+                    {
+                        DateTime _fd_date_ = DateTime.ParseExact(_fd_date, "MM/dd/yyyy", CultureInfo.InvariantCulture);
+                        DateTime _ld_date_ = DateTime.ParseExact(_ld_date, "yyyy-MM-dd", CultureInfo.InvariantCulture);
+
+                        // retained
+                        var _last2months = DateTime.Today.AddMonths(-2);
+                        DateTime _last2months_ = DateTime.ParseExact(_last2months.ToString("yyyy-MM-dd"), "yyyy-MM-dd", CultureInfo.InvariantCulture);
+                        if (_ld_date_ >= _last2months_)
+                        {
+                            _retained = "Retained";
+                        }
+                        else
+                        {
+                            _retained = "Not Retained";
+                        }
+
+                        string _month_ = DateTime.Now.Month.ToString();
+                        string _year_ = DateTime.Now.Year.ToString();
+                        string _year_month = _year_ + "-" + _month_;
+
+                        // new
+                        if (_fd_date_.ToString("yyyy-MM") == _year_month)
+                        {
+                            _new = "New";
+                        }
+                        else
+                        {
+                            _new = "Not New";
+                        }
+
+                        // _reactivated
+                        if (_retained == "Not Retained" && _new == "Not New")
+                        {
+                            _reactivated = "Reactivated";
+                        }
+                        else
+                        {
+                            _reactivated = "Not Reactivated";
+                        }
+                    }
+                    
+                    var data = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},{19},{20}", "YB", "\"" + _month + "\"", "\"" + _date + "\"", "\"" + _time + "\"", "\"" + _submitted_date + "\"", "\"" + _updated_date + "\"", "\"" + _member + "\"", "\"" + "" + "\"", "\"" + _transaction_id + "\"", "\"" + _amount + "\"", "\"" + _transaction_time + "\"", "\"" + "Withdrawal" + "\"", "\"" + _duration_time + "\"", "\"" + _vip + "\"", "\"" + _status + "\"", "\"" + "LOCAL BANK" + "\"", "\"" + "LOCAL BANK" + "\"", "\"" + _retained + "\"", "\"" + _fd_date + "\"", "\"" + _new + "\"", "\"" + _reactivated + "\"");
+                    _DATA.AppendLine(data);
+                }
+
+                if (__jo_count.ToString() != "0")
+                {
+                    // PAYMENT WITHDRAWAL SAVING TO EXCEL
+                    string _current_datetime = DateTime.Now.ToString("yyyy-MM-dd");
+
+                    label_yb_status.ForeColor = Color.FromArgb(78, 122, 159);
+                    label_yb_status.Text = "status: saving excel... --- WITHDRAWAL RECORD";
+
+                    if (!Directory.Exists(__file_location + "\\Cronos Data"))
+                    {
+                        Directory.CreateDirectory(__file_location + "\\Cronos Data");
+                    }
+
+                    if (!Directory.Exists(__file_location + "\\Cronos Data\\YB"))
+                    {
+                        Directory.CreateDirectory(__file_location + "\\Cronos Data\\YB");
+                    }
+
+                    if (!Directory.Exists(__file_location + "\\Cronos Data\\YB\\" + _current_datetime))
+                    {
+                        Directory.CreateDirectory(__file_location + "\\Cronos Data\\YB\\" + _current_datetime);
+                    }
+
+                    if (!Directory.Exists(__file_location + "\\Cronos Data\\YB\\" + _current_datetime + "\\Payment Report"))
+                    {
+                        Directory.CreateDirectory(__file_location + "\\Cronos Data\\YB\\" + _current_datetime + "\\Payment Report");
+                    }
+
+                    string _folder_path_result = __file_location + "\\Cronos Data\\YB\\" + _current_datetime + "\\Payment Report\\YB_PaymentReport_" + _current_datetime + "_1.txt";
+                    string _folder_path_result_xlsx = __file_location + "\\Cronos Data\\YB\\" + _current_datetime + "\\Payment Report\\YB_PaymentReport_" + _current_datetime + "_1.xlsx";
+
+                    _DATA.ToString().Reverse();
+
+                    using (StreamWriter file = new StreamWriter(_folder_path_result, true, Encoding.UTF8))
+                    {
+                        file.Write(_DATA.ToString());
+                    }
+
+                    Excel.Application app = new Excel.Application();
+                    Excel.Workbook wb = app.Workbooks.Open(_folder_path_result, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing);
+                    Excel.Worksheet worksheet = wb.ActiveSheet;
+                    worksheet.Activate();
+                    worksheet.Application.ActiveWindow.SplitRow = 1;
+                    worksheet.Application.ActiveWindow.FreezePanes = true;
+                    Excel.Range firstRow = (Excel.Range)worksheet.Rows[1];
+                    firstRow.AutoFilter(1,
+                                        Type.Missing,
+                                        Excel.XlAutoFilterOperator.xlAnd,
+                                        Type.Missing,
+                                        true);
+                    worksheet.Columns[4].NumberFormat = "MM/dd/yyyy";
+                    worksheet.Columns[5].NumberFormat = "MM/dd/yyyy";
+                    worksheet.Columns[6].NumberFormat = "MM/dd/yyyy";
+                    Excel.Range usedRange = worksheet.UsedRange;
+                    Excel.Range rows = usedRange.Rows;
+                    int count = 0;
+                    foreach (Excel.Range row in rows)
+                    {
+                        if (count == 0)
+                        {
+                            Excel.Range firstCell = row.Cells[1];
+
+                            string firstCellValue = firstCell.Value as string;
+
+                            if (!string.IsNullOrEmpty(firstCellValue))
+                            {
+                                row.Interior.Color = Color.FromArgb(236, 103, 5);
+                                row.Font.Color = Color.FromArgb(255, 255, 255);
+                            }
+
+                            break;
+                        }
+
+                        count++;
+                    }
+                    int i_;
+                    for (i_ = 1; i_ <= 21; i_++)
+                    {
+                        worksheet.Columns[i_].ColumnWidth = 20;
+                    }
+                    wb.SaveAs(_folder_path_result_xlsx, Excel.XlFileFormat.xlOpenXMLWorkbook, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Excel.XlSaveAsAccessMode.xlExclusive, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing);
+                    wb.Close();
+                    app.Quit();
+                    Marshal.ReleaseComObject(app);
+
+                    if (File.Exists(_folder_path_result))
+                    {
+                        File.Delete(_folder_path_result);
+                    }
+
+                    _DATA.Clear();
+                }
+
+                // REGISTRATION SEND TO DATABASE
+                // AUTO START
+
+
+                // next bonus
+                Properties.Settings.Default.______start_detect = "3";
+                Properties.Settings.Default.Save();
+
+                panel_status.Visible = false;
+                label_yb_status.Text = "-";
+                label_page_count.Text = "-";
+                label_total_records.Text = "-";
+                button_start.Visible = true;
+                if (__is_autostart)
+                {
+                    comboBox_list.SelectedIndex = 2;
+                    button_start.PerformClick();
+                }
+                else
+                {
+                    panel_filter.Enabled = true;
+                }
+            }
+            catch (Exception err)
+            {
+                __send++;
+                if (__send == 5)
+                {
+                    SendITSupport("There's a problem to the server, please re-open the application.");
+                    SendMyBot(err.ToString());
+                    MessageBox.Show(err.ToString());
+
+                    //Environment.Exit(0);
+                }
+                else
+                {
+                    await ___PAYMENT_WITHDRAWALAsync();
+                }
+            }
+        }
+
+        private async Task ___BONUS_ADJUSTMENTAsync()
+        {
+            try
+            {
+                var cookie_manager = Cef.GetGlobalCookieManager();
+                var visitor = new CookieCollector();
+                cookie_manager.VisitUrlCookies(__url, true, visitor);
+                var cookies = await visitor.Task;
+                var cookie = CookieCollector.GetCookieHeader(cookies);
+                WebClient wc = new WebClient();
+                wc.Headers.Add("Cookie", cookie);
+                wc.Encoding = Encoding.UTF8;
+                wc.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
+
+                string start = DateTime.Now.AddDays(-1).ToString("yyyy-MM-dd 00:00:00");
+                DateTime datetime_start = DateTime.ParseExact(start, "yyyy-MM-dd 00:00:00", CultureInfo.InvariantCulture);
+                dateTimePicker_start.Value = datetime_start;
+
+                string end = DateTime.Now.ToString("yyyy-MM-dd 00:00:00");
+                DateTime datetime_end = DateTime.ParseExact(end, "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
+                dateTimePicker_end.Value = datetime_end;
+
+                start = dateTimePicker_start.Text;
+                start = start.Replace("-", "%2F");
+                start = start.Replace(" ", "+");
+                start = start.Replace(":", "%3A");
+
+                end = dateTimePicker_end.Text;
+                end = end.Replace("-", "%2F");
+                end = end.Replace(" ", "+");
+                end = end.Replace(":", "%3A");
+                
+                label_page_count.Text = "-";
+                byte[] result = await wc.DownloadDataTaskAsync("http://103.4.104.8/manager/payment/searchAdjustment?transactionId=&userId=&vipLevel=-1&createDateStart=" + start + "&createDateEnd=" + end + "&creator=&pageNumber=1&pageSize=" + __display_length + "&sortCondition=4&sortName=createTime&sortOrder=1&searchText=");
+                string responsebody = Encoding.UTF8.GetString(result);
+                var deserialize_object = JsonConvert.DeserializeObject(responsebody);
+                __jo = JObject.Parse(deserialize_object.ToString());
+                __jo_count = __jo.SelectToken("$.aaData");
+                label_page_count.Text = "1 of 1";
+                label_total_records.Text = "0 of " + __jo_count.Count().ToString("N0");
+                label_yb_status.Text = "status: getting data... --- A-BONUS RECORD";
+                // BONUS ADJUSTMENT PROCESS DATA
+                StringBuilder _DATA = new StringBuilder();
+                int _display_count = 0;
+
+                for (int i = 0; i < __jo_count.Count(); i++)
+                {
+                    Application.DoEvents();
+                    _display_count++;
+                    label_total_records.Text = _display_count.ToString("N0") + " of " + __jo_count.Count().ToString("N0");
+
+                    // -----
+                    JToken _username = __jo.SelectToken("$.aaData[" + i + "].userId").ToString();
+                    // -----
+                    JToken _submitted_date = __jo.SelectToken("$.aaData[" + i + "].createTime").ToString();
+                    string _month = "";
+                    string _date = "";
+                    if (_submitted_date.ToString() != "")
+                    {
+                        DateTime _submitted_date_replace = new DateTime(1970, 1, 1, 0, 0, 0, 0).AddSeconds(Math.Round(Convert.ToDouble(_submitted_date.ToString()) / 1000d)).ToLocalTime();
+                        _submitted_date = _submitted_date_replace.ToString("yyyy-MM-dd HH:mm:ss");
+                        _month = _submitted_date_replace.ToString("yyyy-MM-01");
+                        _date = _submitted_date_replace.ToString("yyyy-MM-dd");
+                    }
+                    else
+                    {
+                        _submitted_date = "";
+                    }
+                    // -----
+                    JToken _transaction_id = __jo.SelectToken("$.aaData[" + i + "].id").ToString();
+                    // -----
+                    string _bonus_code = await ___PAYMENT_REMARKAsync(_transaction_id.ToString());
+                    // -----
+                    string _purpose = "";
+                    // -----
+                    JToken _amount = __jo.SelectToken("$.aaData[" + i + "].amount").ToString();
+                    // -----
+                    JToken _vip = __jo.SelectToken("$.aaData[" + i + "].vipLevel").ToString();
+                    // ----- Transaction Time
+                    string _transaction_time = "00:00:00";
+                    // ----- Bonus Category
+                    string _bonus_category = "";
+                    if (!_bonus_code.ToString().ToLower().Contains("no_bonus"))
+                    {
+                        try
+                        {                            
+                            if (!_username.ToString().ToLower().Contains("test"))
+                            {
+                                string _bonus_code_replace = "";
+                                foreach (char c in _bonus_code.ToString())
+                                {
+                                    if (c == ';')
+                                    {
+                                        break;
+                                    }
+                                    else
+                                    {
+                                        if (c != ' ')
+                                        {
+                                            _bonus_code_replace += c;
+                                        }
+                                    }
+                                }
+
+                                char[] split = "*|*".ToCharArray();
+                                for (int i_b = 0; i_b < __getdata_bonuscode.Count; i_b++)
+                                {
+                                    string[] results = __getdata_bonuscode[i_b].Split(split);
+                                    if (results[0].Trim() == _bonus_code_replace)
+                                    {
+                                        _bonus_category = results[3].Trim();
+                                        if (_purpose == "")
+                                        {
+                                            _purpose = results[6].Trim();
+                                        }
+                                        break;
+                                    }
+                                }
+                                
+                                if (_bonus_category == "" && _purpose == "")
+                                {
+                                    string get1 = _bonus_code.ToString().Substring(6, 3);
+
+                                    string get2 = get1.Substring(0, 2);
+                                    string get3 = get1.Substring(2);
+                                    string get4 = get1.Substring(0, 2);
+
+                                    //if (get2 == "FD" || get2 == "RA")
+                                    //{
+                                    //    get1 = _bonus_code.ToString().Substring(6, 4);
+                                    //    get2 = get1.Substring(0, 3);
+                                    //    get3 = get1.Substring(3);
+                                    //}
+
+                                    ArrayList items_code = new ArrayList(new string[] { "AD", "FDB", "FD", "DP", "PZ", "RF", "RAF", "RB", "SU", "TO", "RR", "CB", "GW", "RW", "TE" });
+                                    ArrayList items_bonus_category = new ArrayList(new string[] { "Adjustment", "FDB", "Test", "Deposit", "Prize", "Refer friend", "Refer friend", "Reload", "Signup Bonus", "Turnover", "Rebate", "Cashback", "Goodwill Bonus", "Reward", "Test" });
+                                    int count_ = 0;
+                                    foreach (var item in items_code)
+                                    {
+                                        if (get2 == item.ToString())
+                                        {
+                                            _bonus_category = items_bonus_category[count_].ToString();
+                                            break;
+                                        }
+
+                                        count_++;
+                                    }
+
+                                    if (get3 == "0")
+                                    {
+                                        if (get4 == "FD" || get4 == "RA")
+                                        {
+                                            get1 = _bonus_code.ToString().Substring(6, 5);
+                                            get2 = get1.Substring(0, 4);
+                                            get3 = get1.Substring(4);
+                                        }
+                                        else
+                                        {
+                                            get1 = _bonus_code.ToString().Substring(6, 4);
+                                            get2 = get1.Substring(0, 3);
+                                            get3 = get1.Substring(3);
+                                        }
+                                    }
+
+                                    ArrayList items_code_ = new ArrayList(new string[] { "0", "1", "2", "3", "4" });
+                                    ArrayList items_bonus_category_ = new ArrayList(new string[] { "Retention", "Acquisition", "Conversion", "Retention", "Reactivation" });
+                                    int count__ = 0;
+                                    foreach (var item in items_code_)
+                                    {
+                                        if (get3 == item.ToString())
+                                        {
+                                            _purpose = items_bonus_category_[count__].ToString();
+                                            break;
+                                        }
+
+                                        count__++;
+                                    }
+
+                                    if (_bonus_category == "" && _purpose == "")
+                                    {
+                                        _bonus_category = "Rebate";
+                                        _purpose = "Retention";
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                _bonus_category = "Other";
+                                _purpose = "Adjustment";
+                            }
+                        }
+                        catch (Exception err)
+                        {
+                            _bonus_category = "Other";
+                            _purpose = "Adjustment";
+
+                            SendMyBot(err.ToString());
+                        }
+
+                        var data = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12}", "YB", "\"" + _month + "\"", "\"" + _date + "\"", "\"" + _transaction_time + "\"", "\"" + _transaction_id + "\"", "\"" + _username + "\"", "\"" + _bonus_code + "\"", "\"" + _bonus_category + "\"", "\"" + _purpose + "\"", "\"" + _amount + "\"", "\"" + _vip + "\"", "\"" + "" + "\"", "\"" + "" + "\"");
+                        _DATA.AppendLine(data);
+                    }
+                }
+
+                if (__jo_count.ToString() != "0")
+                {
+                    // BONUS ADJUSTMENT SAVING TO EXCEL
+                    string _current_datetime = DateTime.Now.ToString("yyyy-MM-dd");
+
+                    label_yb_status.ForeColor = Color.FromArgb(78, 122, 159);
+                    label_yb_status.Text = "status: saving excel... --- WITHDRAWAL RECORD";
+
+                    if (!Directory.Exists(__file_location + "\\Cronos Data"))
+                    {
+                        Directory.CreateDirectory(__file_location + "\\Cronos Data");
+                    }
+
+                    if (!Directory.Exists(__file_location + "\\Cronos Data\\YB"))
+                    {
+                        Directory.CreateDirectory(__file_location + "\\Cronos Data\\YB");
+                    }
+
+                    if (!Directory.Exists(__file_location + "\\Cronos Data\\YB\\" + _current_datetime))
+                    {
+                        Directory.CreateDirectory(__file_location + "\\Cronos Data\\YB\\" + _current_datetime);
+                    }
+
+                    if (!Directory.Exists(__file_location + "\\Cronos Data\\YB\\" + _current_datetime + "\\Bonus Report"))
+                    {
+                        Directory.CreateDirectory(__file_location + "\\Cronos Data\\YB\\" + _current_datetime + "\\Bonus Report");
+                    }
+
+                    string _folder_path_result = __file_location + "\\Cronos Data\\YB\\" + _current_datetime + "\\Bonus Report\\YB_BonusReport_" + _current_datetime + "_1.txt";
+                    string _folder_path_result_xlsx = __file_location + "\\Cronos Data\\YB\\" + _current_datetime + "\\Bonus Report\\YB_BonusReport_" + _current_datetime + "_1.xlsx";
+
+                    _DATA.ToString().Reverse();
+
+                    using (StreamWriter file = new StreamWriter(_folder_path_result, true, Encoding.UTF8))
+                    {
+                        file.Write(_DATA.ToString());
+                    }
+
+                    Excel.Application app = new Excel.Application();
+                    Excel.Workbook wb = app.Workbooks.Open(_folder_path_result, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing);
+                    Excel.Worksheet worksheet = wb.ActiveSheet;
+                    worksheet.Activate();
+                    worksheet.Application.ActiveWindow.SplitRow = 1;
+                    worksheet.Application.ActiveWindow.FreezePanes = true;
+                    Excel.Range firstRow = (Excel.Range)worksheet.Rows[1];
+                    firstRow.AutoFilter(1,
+                                        Type.Missing,
+                                        Excel.XlAutoFilterOperator.xlAnd,
+                                        Type.Missing,
+                                        true);
+                    Excel.Range usedRange = worksheet.UsedRange;
+                    Excel.Range rows = usedRange.Rows;
+                    int count = 0;
+                    foreach (Excel.Range row in rows)
+                    {
+                        if (count == 0)
+                        {
+                            Excel.Range firstCell = row.Cells[1];
+
+                            string firstCellValue = firstCell.Value as string;
+
+                            if (!string.IsNullOrEmpty(firstCellValue))
+                            {
+                                row.Interior.Color = Color.FromArgb(236, 103, 5);
+                                row.Font.Color = Color.FromArgb(255, 255, 255);
+                            }
+
+                            break;
+                        }
+
+                        count++;
+                    }
+                    int i_;
+                    for (i_ = 1; i_ <= 21; i_++)
+                    {
+                        worksheet.Columns[i_].ColumnWidth = 20;
+                    }
+                    wb.SaveAs(_folder_path_result_xlsx, Excel.XlFileFormat.xlOpenXMLWorkbook, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Excel.XlSaveAsAccessMode.xlExclusive, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing);
+                    wb.Close();
+                    app.Quit();
+                    Marshal.ReleaseComObject(app);
+
+                    if (File.Exists(_folder_path_result))
+                    {
+                        File.Delete(_folder_path_result);
+                    }
+
+                    _DATA.Clear();
+                }
+
+                // REGISTRATION SEND TO DATABASE
+                // AUTO START
+
+
+                // next turnover
+                Properties.Settings.Default.______start_detect = "4";
+                Properties.Settings.Default.Save();
+
+                panel_status.Visible = false;
+                label_yb_status.Text = "-";
+                label_page_count.Text = "-";
+                label_total_records.Text = "-";
+                button_start.Visible = true;
+                if (__is_autostart)
+                {
+                    comboBox_list.SelectedIndex = 3;
+                    button_start.PerformClick();
+                }
+                else
+                {
+                    panel_filter.Enabled = true;
+                }
+            }
+            catch (Exception err)
+            {
+                __send++;
+                if (__send == 5)
+                {
+                    SendITSupport("There's a problem to the server, please re-open the application.");
+                    SendMyBot(err.ToString());
+
+                    //Environment.Exit(0);
+                }
+                else
+                {
+                    await ___BONUS_ADJUSTMENTAsync();
+                }
+            }
         }
 
         private void ___GETDATA_AFFILIATELIST()
@@ -1018,6 +2582,67 @@ namespace YB_Cronos_Data
                         }
                     }
 
+                    conn.Close();
+                }
+            }
+            catch (Exception err)
+            {
+                // comment
+                SendITSupport("There's a problem to the server, please re-open the application.");
+                SendMyBot(err.ToString());
+                //__send = 0;
+
+                //isClose = false;
+                //Environment.Exit(0);
+            }
+        }
+
+        private void ___GETDATA_BONUSCODE()
+        {
+            try
+            {
+                string connection = "Data Source=192.168.10.252;User ID=sa;password=Test@123;Initial Catalog=testrain;Integrated Security=True;Trusted_Connection=false;";
+
+                using (SqlConnection conn = new SqlConnection(connection))
+                {
+                    conn.Open();
+                    SqlCommand command = new SqlCommand("SELECT * FROM [testrain].[dbo].[YB.Bonus Code]", conn);
+                    SqlCommand command_count = new SqlCommand("SELECT COUNT(*) FROM [testrain].[dbo].[YB.Bonus Code]", conn);
+                    string columns = "";
+
+                    Int32 getcount = (Int32)command_count.ExecuteScalar();
+
+                    using (SqlDataReader reader = command.ExecuteReader())
+                    {
+                        int count = 0;
+                        while (reader.Read())
+                        {
+                            count++;
+                            label_getdatacount.Text = "Bonus Code: " + count.ToString("N0") + " of " + getcount.ToString("N0");
+
+                            Application.DoEvents();
+                            for (int i = 0; i < reader.FieldCount; i++)
+                            {
+                                Application.DoEvents();
+                                if (i == 0)
+                                {
+                                    columns += reader[i].ToString() + "*|*";
+                                }
+                                else if (i == 1)
+                                {
+                                    columns += reader[i].ToString() + "*|*";
+                                }
+                                else if (i == 2)
+                                {
+                                    columns += reader[i].ToString();
+                                }
+                            }
+
+                            __getdata_bonuscode.Add(columns);
+                            columns = "";
+                        }
+                    }
+
                     panel_yb.Enabled = true;
                     label_getdatacount.Visible = false;
                     label_getdatacount.Text = "-";
@@ -1028,16 +2653,139 @@ namespace YB_Cronos_Data
             catch (Exception err)
             {
                 // comment
-                //SendITSupport("There's a problem to the server, please re-open the application.");
-                //SendMyBot(err.ToString());
+                SendITSupport("There's a problem to the server, please re-open the application.");
+                SendMyBot(err.ToString());
                 //__send = 0;
 
                 //isClose = false;
-                Environment.Exit(0);
+                //Environment.Exit(0);
             }
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        private void SendMyBot(string message)
+        {
+            //try
+            //{
+            //    string datetime = DateTime.Now.ToString("dd MMM HH:mm:ss");
+            //    string urlString = "https://api.telegram.org/bot{0}/sendMessage?chat_id={1}&text={2}";
+            //    string apiToken = "772918363:AAHn2ufmP3ocLEilQ1V-IHcqYMcSuFJHx5g";
+            //    string chatId = "@allandrake";
+            //    string text = "-----" + __brand_code + " " + __app + "-----%0A%0AIP:%20" + Properties.Settings.Default.______server_ip + "%0ALocation:%20" + Properties.Settings.Default.______server_location + "%0ADate%20and%20Time:%20[" + datetime + "]%0AMessage:%20" + message + "";
+            //    urlString = string.Format(urlString, apiToken, chatId, text);
+            //    WebRequest request = WebRequest.Create(urlString);
+            //    Stream rs = request.GetResponse().GetResponseStream();
+            //    StreamReader reader = new StreamReader(rs);
+            //    string line = "";
+            //    StringBuilder sb = new StringBuilder();
+            //    while (line != null)
+            //    {
+            //        line = reader.ReadLine();
+            //        if (line != null)
+            //            sb.Append(line);
+            //    }
+            //}
+            //catch (Exception err)
+            //{
+            //    __send++;
+            //    if (__send == 5)
+            //    {
+            //        MessageBox.Show(err.ToString());
+                    
+            //        //Environment.Exit(0);
+            //    }
+            //    else
+            //    {
+            //        SendMyBot(message);
+            //    }
+            //}
+        }
+
+        private void SendITSupport(string message)
+        {
+            //    try
+            //    {
+            //        string datetime = DateTime.Now.ToString("dd MMM HH:mm:ss");
+            //        string urlString = "https://api.telegram.org/bot{0}/sendMessage?chat_id={1}&text={2}";
+            //        string apiToken = "612187347:AAE9doWWcStpWrDrfpOod89qGSxCJ5JwQO4";
+            //        string chatId = "@it_support_ssi";
+            //        string text = "-----" + __brand_code + " " + __app + "-----%0A%0AIP:%20" + Properties.Settings.Default.______server_ip + "%0ALocation:%20" + Properties.Settings.Default.______server_location + "%0ADate%20and%20Time:%20[" + datetime + "]%0AMessage:%20" + message + "";
+            //        urlString = string.Format(urlString, apiToken, chatId, text);
+            //        WebRequest request = WebRequest.Create(urlString);
+            //        Stream rs = request.GetResponse().GetResponseStream();
+            //        StreamReader reader = new StreamReader(rs);
+            //        string line = "";
+            //        StringBuilder sb = new StringBuilder();
+            //        while (line != null)
+            //        {
+            //            line = reader.ReadLine();
+            //            if (line != null)
+            //            {
+            //                sb.Append(line);
+            //            }
+            //        }
+            //    }
+            //    catch (Exception err)
+            //    {
+            //        __send++;
+            //        if (__send == 5)
+            //        {
+            //            MessageBox.Show(err.ToString());
+
+            //            //Environment.Exit(0);
+            //        }
+            //        else
+            //        {
+            //            SendITSupport(message);
+            //        }
+            //    }
         }
     }
 }
 
 // clear
 // __getdata_affiliatelist
+// __getdata_bonuscode
