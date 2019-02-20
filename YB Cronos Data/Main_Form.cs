@@ -44,7 +44,7 @@ namespace YB_Cronos_Data
         List<string> __getdata_affiliatelist = new List<string>();
         List<string> __getdata_bonuscode = new List<string>();
         Timer timer = new Timer();
-        Form __mainFormHandler;
+        Form __mainform_handler;
         
         // Drag Header to Move
         [DllImport("user32.dll")]
@@ -203,7 +203,7 @@ namespace YB_Cronos_Data
             if (dr == DialogResult.Yes)
             {
                 __is_close = false;
-                //Environment.Exit(0);
+                Environment.Exit(0);
             }
         }
 
@@ -245,12 +245,14 @@ namespace YB_Cronos_Data
                         label_page_count.Visible = false;
                         label_total_records.Visible = false;
                         button_start.Visible = false;
-                        //__mainFormHandler = Application.OpenForms[0];
-                        //__mainFormHandler.Size = new Size(466, 468);
+                        panel_loader.Visible = false;
+                        __mainform_handler = Application.OpenForms[0];
+                        __mainform_handler.Size = new Size(569, 514);
+                        label_navigate_up.Enabled = true;
 
                         string datetime = DateTime.Now.ToString("dd MMM HH:mm:ss");
                         // comment
-                        SendITSupport("The application have been logout, please re-login again.");
+                        //SendITSupport("The application have been logout, please re-login again.");
                         SendMyBot("The application have been logout, please re-login again.");
                         __send = 0;
                         // comment
@@ -303,8 +305,10 @@ namespace YB_Cronos_Data
                     label_page_count.Visible = true;
                     label_total_records.Visible = true;
                     button_start.Visible = true;
-                    //__mainFormHandler = Application.OpenForms[0];
-                    //__mainFormHandler.Size = new Size(466, 168);
+                    __mainform_handler = Application.OpenForms[0];
+                    __mainform_handler.Size = new Size(569, 208);
+                    panel_loader.Visible = true;
+                    label_navigate_up.Enabled = false;
 
                     if (!__is_login)
                     {
@@ -327,6 +331,7 @@ namespace YB_Cronos_Data
                         {
                             button_start.Enabled = false;
                             panel_filter.Enabled = false;
+                            label_status.Text = "Waiting";
                         }
                         // registration
                         else if (Properties.Settings.Default.______start_detect == "1")
@@ -352,12 +357,6 @@ namespace YB_Cronos_Data
                             comboBox_list.SelectedIndex = 3;
                             button_start.PerformClick();
                         }
-                        // bet record
-                        else if (Properties.Settings.Default.______start_detect == "5")
-                        {
-                            comboBox_list.SelectedIndex = 4;
-                            button_start.PerformClick();
-                        }
                     }
                 }));
             }
@@ -370,7 +369,7 @@ namespace YB_Cronos_Data
                 InitializeChromium();
             }
             
-            //panel_landing.Visible = false;
+            panel_landing.Visible = false;
             label_title.Visible = true;
             panel.Visible = true;
             pictureBox_minimize.Visible = true;
@@ -517,17 +516,6 @@ namespace YB_Cronos_Data
                 DateTime datetime_end = DateTime.ParseExact(end, "yyyy-MM-dd", CultureInfo.InvariantCulture);
                 dateTimePicker_end.Value = datetime_end;
             }
-            else if (comboBox_list.SelectedIndex == 4)
-            {
-                // Bet Record
-                string start = DateTime.Now.AddDays(-1).ToString("yyyy-MM-dd");
-                DateTime datetime_start = DateTime.ParseExact(start, "yyyy-MM-dd", CultureInfo.InvariantCulture);
-                dateTimePicker_start.Value = datetime_start;
-
-                string end = DateTime.Now.AddDays(-1).ToString("yyyy-MM-dd");
-                DateTime datetime_end = DateTime.ParseExact(end, "yyyy-MM-dd", CultureInfo.InvariantCulture);
-                dateTimePicker_end.Value = datetime_end;
-            }
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -535,7 +523,7 @@ namespace YB_Cronos_Data
             DateTime today = DateTime.Now;
             DateTime date = today.AddDays(1);
             Properties.Settings.Default.______midnight_time = date.ToString("yyyy-MM-dd 00:30");
-            Properties.Settings.Default.______start_detect = "5";
+            Properties.Settings.Default.______start_detect = "0";
             Properties.Settings.Default.Save();
         }
 
@@ -660,7 +648,7 @@ namespace YB_Cronos_Data
                 try
                 {
                     label_count.Text = __timer_count--.ToString();
-                    if (label_count.Text == "9")
+                    if (label_count.Text == "-1")
                     {
                         label_status.Text = "Running";
                         panel_status.Visible = true;
@@ -697,12 +685,6 @@ namespace YB_Cronos_Data
                             // Turnover Record
                             label_yb_status.Text = "status: doing calculation... --- TURNOVER RECORD";
                             await ___TURNOVERAsync();
-                        }
-                        else if (comboBox_list.SelectedIndex == 4)
-                        {
-                            // Bet Record
-                            label_yb_status.Text = "status: doing calculation... --- BET RECORD";
-                            ___BET();
                         }
                     }
                 }
@@ -998,10 +980,10 @@ namespace YB_Cronos_Data
                 __send++;
                 if (__send == 5)
                 {
-                    SendITSupport("There's a problem to the server, please re-open the application.");
+                    //SendITSupport("There's a problem to the server, please re-open the application.");
                     SendMyBot(err.ToString());
 
-                    //Environment.Exit(0);
+                    Environment.Exit(0);
                 }
                 else
                 {
@@ -1316,10 +1298,10 @@ namespace YB_Cronos_Data
                 __send++;
                 if (__send == 5)
                 {
-                    SendITSupport("There's a problem to the server, please re-open the application.");
+                    //SendITSupport("There's a problem to the server, please re-open the application.");
                     SendMyBot(err.ToString());
 
-                    //Environment.Exit(0);
+                    Environment.Exit(0);
                 }
                 else
                 {
@@ -1378,16 +1360,34 @@ namespace YB_Cronos_Data
                     _provider = _provider_replace;
                     // -----
                     JToken _category = __jo.SelectToken("$.aaData[" + i + "].gameType").ToString();
-                    // -----
-                    JToken _bet_count = __jo.SelectToken("$.aaData[" + i + "].betCount").ToString();
+                    if (_category.ToString().ToLower() == "slot")
+                    {
+                        _category = "Slots";
+                    }
+                    else if (_category.ToString().ToLower() == "sport")
+                    {
+                        _category = "Sports";
+                    }
+                    else if (_category.ToString().ToLower() == "casino")
+                    {
+                        _category = "Live Casino";
+                    }
+                    if (_provider.ToString() == "开元棋牌")
+                    {
+                        _category = "Card Game";
+                    }
                     // -----
                     JToken _vip = __jo.SelectToken("$.aaData[" + i + "].vipLevel").ToString();
                     // -----
                     JToken _stake = __jo.SelectToken("$.aaData[" + i + "].sumBetAmount").ToString();
                     // -----
-                    JToken _company_wl = __jo.SelectToken("$.aaData[" + i + "].turnover").ToString();
+                    JToken _stake_ex_draw = __jo.SelectToken("$.aaData[" + i + "].turnover").ToString();
                     // -----
-                    JToken _submitted_date = __jo.SelectToken("$.aaData[" + i + "].summaryDate").ToString();
+                    JToken _bet_count = __jo.SelectToken("$.aaData[" + i + "].betCount").ToString();
+                    // -----
+                    JToken _company_wl = __jo.SelectToken("$.aaData[" + i + "].profit").ToString();
+                    // -----
+                    JToken _date = __jo.SelectToken("$.aaData[" + i + "].summaryDate").ToString();
 
                     string _fd_date = await ___REGISTRATION_FIRSTDEPOSITAsync(_member.ToString());
                     string _ld_date = await ___REGISTRATION_LASTDEPOSITAsync(_member.ToString());
@@ -1437,14 +1437,12 @@ namespace YB_Cronos_Data
                     // ----- New Based on Reg && Reg Month
                     string _reg_month = await ___TURNOVER_REGMONTHsync(_member.ToString());
                     string _month = "";
-                    string _date = "";
                     string _new_based_on_reg = "";
                     if (_reg_month != "")
                     {
                         DateTime _reg_month_replace = new DateTime(1970, 1, 1, 0, 0, 0, 0).AddSeconds(Math.Round(Convert.ToDouble(_reg_month.ToString()) / 1000d)).ToLocalTime();
                         _reg_month = _reg_month_replace.ToString("MM/dd/yyyy");
                         _month = _reg_month_replace.ToString("yyyy-MM-01");
-                        _date = _reg_month_replace.ToString("yyyy-MM-dd");
 
                         DateTime _reg_month_replace_ = DateTime.ParseExact(_reg_month, "MM/dd/yyyy", CultureInfo.InvariantCulture);
                         if (_reg_month_replace_.ToString("yyyy-MM") == _year_month)
@@ -1584,11 +1582,8 @@ namespace YB_Cronos_Data
                     _DATA.Clear();
                 }
 
-                // REGISTRATION SEND TO DATABASE
-                // AUTO START
-
-                // next bet record
-                Properties.Settings.Default.______start_detect = "5";
+                // DONE REPORTS
+                Properties.Settings.Default.______start_detect = "0";
                 Properties.Settings.Default.Save();
 
                 panel_status.Visible = false;
@@ -1596,25 +1591,40 @@ namespace YB_Cronos_Data
                 label_page_count.Text = "-";
                 label_total_records.Text = "-";
                 button_start.Visible = true;
+                button_start.Enabled = false;
                 if (__is_autostart)
                 {
-                    comboBox_list.SelectedIndex = 4;
-                    button_start.PerformClick();
+                    comboBox_list.SelectedIndex = 0;
+
+                    SendITSupport("Reports has been completed.");
+                    SendReportsTeam("Reports has been completed.");
                 }
                 else
                 {
                     panel_filter.Enabled = true;
                 }
+
+                // ghghghghghg
+                __getdata_affiliatelist.Clear();
+                __getdata_bonuscode.Clear();
+                __start_datetime_elapsed = "";
+                label_finish_datetime.Text = DateTime.Now.ToString("ddd, dd MMM HH:mm:ss");
+                timer_elapsed.Stop();
+
+                label_start_datetime.Text = "-";
+                label_finish_datetime.Text = "-";
+
+                label_status.Text = "Waiting";
             }
             catch (Exception err)
             {
                 __send++;
                 if (__send == 5)
                 {
-                    SendITSupport("There's a problem to the server, please re-open the application.");
+                    //SendITSupport("There's a problem to the server, please re-open the application.");
                     SendMyBot(err.ToString());
 
-                    //Environment.Exit(0);
+                    Environment.Exit(0);
                 }
                 else
                 {
@@ -1940,7 +1950,7 @@ namespace YB_Cronos_Data
                         DateTime _last2months_ = DateTime.ParseExact(_last2months.ToString("yyyy-MM-dd"), "yyyy-MM-dd", CultureInfo.InvariantCulture);
                         if (_ld_date_ >= _last2months_)
                         {
-                            _retained = "Yes";
+                            _retained = "Retained";
                         }
                         else
                         {
@@ -2041,11 +2051,10 @@ namespace YB_Cronos_Data
                 __send++;
                 if (__send == 5)
                 {
-                    SendITSupport("There's a problem to the server, please re-open the application.");
+                    //SendITSupport("There's a problem to the server, please re-open the application.");
                     SendMyBot(err.ToString());
-                    MessageBox.Show(err.ToString());
 
-                    //Environment.Exit(0);
+                    Environment.Exit(0);
                 }
                 else
                 {
@@ -2453,11 +2462,10 @@ namespace YB_Cronos_Data
                 __send++;
                 if (__send == 5)
                 {
-                    SendITSupport("There's a problem to the server, please re-open the application.");
+                    //SendITSupport("There's a problem to the server, please re-open the application.");
                     SendMyBot(err.ToString());
-                    MessageBox.Show(err.ToString());
 
-                    //Environment.Exit(0);
+                    Environment.Exit(0);
                 }
                 else
                 {
@@ -2796,6 +2804,7 @@ namespace YB_Cronos_Data
                 label_page_count.Text = "-";
                 label_total_records.Text = "-";
                 button_start.Visible = true;
+                button_start.Enabled = false;
                 __detect_header = false;
                 if (__is_autostart)
                 {
@@ -2812,10 +2821,10 @@ namespace YB_Cronos_Data
                 __send++;
                 if (__send == 5)
                 {
-                    SendITSupport("There's a problem to the server, please re-open the application.");
+                    //SendITSupport("There's a problem to the server, please re-open the application.");
                     SendMyBot(err.ToString());
 
-                    //Environment.Exit(0);
+                    Environment.Exit(0);
                 }
                 else
                 {
@@ -2872,12 +2881,10 @@ namespace YB_Cronos_Data
             catch (Exception err)
             {
                 // comment
-                SendITSupport("There's a problem to the server, please re-open the application.");
+                //SendITSupport("There's a problem to the server, please re-open the application.");
                 SendMyBot(err.ToString());
-                //__send = 0;
-
-                //isClose = false;
-                //Environment.Exit(0);
+                
+                Environment.Exit(0);
             }
         }
 
@@ -2937,12 +2944,10 @@ namespace YB_Cronos_Data
             catch (Exception err)
             {
                 // comment
-                SendITSupport("There's a problem to the server, please re-open the application.");
+                //SendITSupport("There's a problem to the server, please re-open the application.");
                 SendMyBot(err.ToString());
-                //__send = 0;
-
-                //isClose = false;
-                //Environment.Exit(0);
+                
+                Environment.Exit(0);
             }
         }
 
@@ -2992,80 +2997,202 @@ namespace YB_Cronos_Data
 
         private void SendMyBot(string message)
         {
-            //try
-            //{
-            //    string datetime = DateTime.Now.ToString("dd MMM HH:mm:ss");
-            //    string urlString = "https://api.telegram.org/bot{0}/sendMessage?chat_id={1}&text={2}";
-            //    string apiToken = "772918363:AAHn2ufmP3ocLEilQ1V-IHcqYMcSuFJHx5g";
-            //    string chatId = "@allandrake";
-            //    string text = "-----" + __brand_code + " " + __app + "-----%0A%0AIP:%20" + Properties.Settings.Default.______server_ip + "%0ALocation:%20" + Properties.Settings.Default.______server_location + "%0ADate%20and%20Time:%20[" + datetime + "]%0AMessage:%20" + message + "";
-            //    urlString = string.Format(urlString, apiToken, chatId, text);
-            //    WebRequest request = WebRequest.Create(urlString);
-            //    Stream rs = request.GetResponse().GetResponseStream();
-            //    StreamReader reader = new StreamReader(rs);
-            //    string line = "";
-            //    StringBuilder sb = new StringBuilder();
-            //    while (line != null)
-            //    {
-            //        line = reader.ReadLine();
-            //        if (line != null)
-            //            sb.Append(line);
-            //    }
-            //}
-            //catch (Exception err)
-            //{
-            //    __send++;
-            //    if (__send == 5)
-            //    {
-            //        MessageBox.Show(err.ToString());
-                    
-            //        //Environment.Exit(0);
-            //    }
-            //    else
-            //    {
-            //        SendMyBot(message);
-            //    }
-            //}
+            try
+            {
+                string datetime = DateTime.Now.ToString("dd MMM HH:mm:ss");
+                string urlString = "https://api.telegram.org/bot{0}/sendMessage?chat_id={1}&text={2}";
+                string apiToken = "772918363:AAHn2ufmP3ocLEilQ1V-IHcqYMcSuFJHx5g";
+                string chatId = "@allandrake";
+                string text = "-----" + __brand_code + " " + __app + "-----%0A%0AIP:%20" + Properties.Settings.Default.______server_ip + "%0ALocation:%20" + Properties.Settings.Default.______server_location + "%0ADate%20and%20Time:%20[" + datetime + "]%0AMessage:%20" + message + "";
+                urlString = string.Format(urlString, apiToken, chatId, text);
+                WebRequest request = WebRequest.Create(urlString);
+                Stream rs = request.GetResponse().GetResponseStream();
+                StreamReader reader = new StreamReader(rs);
+                string line = "";
+                StringBuilder sb = new StringBuilder();
+                while (line != null)
+                {
+                    line = reader.ReadLine();
+                    if (line != null)
+                        sb.Append(line);
+                }
+            }
+            catch (Exception err)
+            {
+                __send++;
+                if (__send == 5)
+                {
+                    MessageBox.Show(err.ToString());
+
+                    Environment.Exit(0);
+                }
+                else
+                {
+                    SendMyBot(message);
+                }
+            }
         }
 
         private void SendITSupport(string message)
         {
-            //    try
-            //    {
-            //        string datetime = DateTime.Now.ToString("dd MMM HH:mm:ss");
-            //        string urlString = "https://api.telegram.org/bot{0}/sendMessage?chat_id={1}&text={2}";
-            //        string apiToken = "612187347:AAE9doWWcStpWrDrfpOod89qGSxCJ5JwQO4";
-            //        string chatId = "@it_support_ssi";
-            //        string text = "-----" + __brand_code + " " + __app + "-----%0A%0AIP:%20" + Properties.Settings.Default.______server_ip + "%0ALocation:%20" + Properties.Settings.Default.______server_location + "%0ADate%20and%20Time:%20[" + datetime + "]%0AMessage:%20" + message + "";
-            //        urlString = string.Format(urlString, apiToken, chatId, text);
-            //        WebRequest request = WebRequest.Create(urlString);
-            //        Stream rs = request.GetResponse().GetResponseStream();
-            //        StreamReader reader = new StreamReader(rs);
-            //        string line = "";
-            //        StringBuilder sb = new StringBuilder();
-            //        while (line != null)
-            //        {
-            //            line = reader.ReadLine();
-            //            if (line != null)
-            //            {
-            //                sb.Append(line);
-            //            }
-            //        }
-            //    }
-            //    catch (Exception err)
-            //    {
-            //        __send++;
-            //        if (__send == 5)
-            //        {
-            //            MessageBox.Show(err.ToString());
+            try
+            {
+                string datetime = DateTime.Now.ToString("dd MMM HH:mm:ss");
+                string urlString = "https://api.telegram.org/bot{0}/sendMessage?chat_id={1}&text={2}";
+                string apiToken = "612187347:AAE9doWWcStpWrDrfpOod89qGSxCJ5JwQO4";
+                string chatId = "@it_support_ssi";
+                string text = "-----" + __brand_code + " " + __app + "-----%0A%0AIP:%20" + Properties.Settings.Default.______server_ip + "%0ALocation:%20" + Properties.Settings.Default.______server_location + "%0ADate%20and%20Time:%20[" + datetime + "]%0AMessage:%20" + message + "";
+                urlString = string.Format(urlString, apiToken, chatId, text);
+                WebRequest request = WebRequest.Create(urlString);
+                Stream rs = request.GetResponse().GetResponseStream();
+                StreamReader reader = new StreamReader(rs);
+                string line = "";
+                StringBuilder sb = new StringBuilder();
+                while (line != null)
+                {
+                    line = reader.ReadLine();
+                    if (line != null)
+                    {
+                        sb.Append(line);
+                    }
+                }
+            }
+            catch (Exception err)
+            {
+                __send++;
+                if (__send == 5)
+                {
+                    MessageBox.Show(err.ToString());
 
-            //            //Environment.Exit(0);
-            //        }
-            //        else
-            //        {
-            //            SendITSupport(message);
-            //        }
-            //    }
+                    Environment.Exit(0);
+                }
+                else
+                {
+                    SendITSupport(message);
+                }
+            }
+        }
+
+        private void SendReportsTeam(string message)
+        {
+            try
+            {
+                string datetime = DateTime.Now.ToString("dd MMM HH:mm:ss");
+                string urlString = "https://api.telegram.org/bot{0}/sendMessage?chat_id={1}&text={2}";
+                string apiToken = "762890741:AAFwjSml3OgWrN07G_41YgIIzFAyxYLGE8Q";
+                string chatId = "@cronos_data_reports_team";
+                string text = "Brand:%20-----" + __brand_code + "-----%0ATime:%20[" + datetime + "]%0AMessage:%20" + message + "";
+                urlString = String.Format(urlString, apiToken, chatId, text);
+                WebRequest request = WebRequest.Create(urlString);
+                Stream rs = request.GetResponse().GetResponseStream();
+                StreamReader reader = new StreamReader(rs);
+                string line = "";
+                StringBuilder sb = new StringBuilder();
+                while (line != null)
+                {
+                    line = reader.ReadLine();
+                    if (line != null)
+                        sb.Append(line);
+                }
+            }
+            catch (Exception err)
+            {
+                __send++;
+                if (__send <= 5)
+                {
+                    SendReportsTeam(message);
+                }
+                else
+                {
+                    MessageBox.Show(err.ToString());
+                }
+            }
+        }
+
+        private void timer_midnight_Tick(object sender, EventArgs e)
+        {
+            if (Properties.Settings.Default.______midnight_time == "")
+            {
+                DateTime today = DateTime.Now;
+                DateTime date = today.AddDays(1);
+                Properties.Settings.Default.______midnight_time = date.ToString("yyyy-MM-dd 00:30");
+                Properties.Settings.Default.Save();
+            }
+            else
+            {
+                DateTime today = DateTime.Now;
+                if (Properties.Settings.Default.______midnight_time == today.ToString("yyyy-MM-dd HH:mm"))
+                {
+                    if (Properties.Settings.Default.______start_detect == "0")
+                    {
+                        Properties.Settings.Default.______midnight_time = "";
+                        Properties.Settings.Default.Save();
+
+                        ___GETDATA_AFFILIATELIST();
+                        ___GETDATA_BONUSCODE();
+                        Properties.Settings.Default.______start_detect = "1";
+                        Properties.Settings.Default.Save();
+                        comboBox_list.SelectedIndex = 1;
+                        comboBox_list.SelectedIndex = 0;
+                        button_start.Enabled = true;
+                        button_start.PerformClick();
+                    }
+                }
+                else
+                {
+                    string start_datetime = today.ToString("yyyy-MM-dd HH:mm");
+                    DateTime start = DateTime.ParseExact(start_datetime, "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
+
+                    string end_datetime = Properties.Settings.Default.______midnight_time;
+                    DateTime end = DateTime.ParseExact(end_datetime, "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
+
+                    if (start > end)
+                    {
+                        if (Properties.Settings.Default.______start_detect == "0")
+                        {
+                            Properties.Settings.Default.______midnight_time = "";
+                            Properties.Settings.Default.Save();
+
+                            ___GETDATA_AFFILIATELIST();
+                            ___GETDATA_BONUSCODE();
+                            Properties.Settings.Default.______start_detect = "1";
+                            Properties.Settings.Default.Save();
+                            comboBox_list.SelectedIndex = 1;
+                            comboBox_list.SelectedIndex = 0;
+                            button_start.Enabled = true;
+                            button_start.PerformClick();
+                        }
+                    }
+                }
+            }
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            ___GETDATA_AFFILIATELIST();
+            ___GETDATA_BONUSCODE();
+            Properties.Settings.Default.______start_detect = "1";
+            Properties.Settings.Default.Save();
+            comboBox_list.SelectedIndex = 1;
+            comboBox_list.SelectedIndex = 0;
+            button_start.Enabled = true;
+            button_start.PerformClick();
+        }
+
+        private void label_navigate_up_Click(object sender, EventArgs e)
+        {
+            __mainform_handler = Application.OpenForms[0];
+            __mainform_handler.Size = new Size(569, 208);
+            panel_loader.Visible = true;
+            label_navigate_up.Enabled = false;
+        }
+
+        private void label_navigate_down_Click(object sender, EventArgs e)
+        {
+            __mainform_handler = Application.OpenForms[0];
+            __mainform_handler.Size = new Size(569, 514);
+            panel_loader.Visible = false;
+            label_navigate_up.Enabled = true;
         }
     }
 }
