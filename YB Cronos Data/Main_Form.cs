@@ -24,7 +24,7 @@ namespace YB_Cronos_Data
     {
         private string __url_01 = "http://103.4.104.8/page/manager/login.jsp";
         private string __url = "";
-        private string __start_datetime_elapsed;
+        private string __start_datetime_elapsed = "";
         private string __file_location = "\\\\192.168.10.22\\ssi-reporting";
         private string __brand_code = "YB";
         private string __brand_color = "#EC6506";
@@ -37,6 +37,7 @@ namespace YB_Cronos_Data
         private bool __is_login = false;
         private bool __is_start = false;
         private bool __is_autostart = true;
+        private bool __detect_header = false;
         private JObject __jo;
         private JToken __jo_count;
         private ChromiumWebBrowser chromeBrowser;
@@ -55,6 +56,7 @@ namespace YB_Cronos_Data
         
         // Form Shadow
         private bool m_aeroEnabled;
+
         [DllImport("Gdi32.dll", EntryPoint = "CreateRoundRectRgn")]
         private static extern IntPtr CreateRoundRectRgn
         (
@@ -350,6 +352,12 @@ namespace YB_Cronos_Data
                             comboBox_list.SelectedIndex = 3;
                             button_start.PerformClick();
                         }
+                        // bet record
+                        else if (Properties.Settings.Default.______start_detect == "5")
+                        {
+                            comboBox_list.SelectedIndex = 4;
+                            button_start.PerformClick();
+                        }
                     }
                 }));
             }
@@ -527,7 +535,7 @@ namespace YB_Cronos_Data
             DateTime today = DateTime.Now;
             DateTime date = today.AddDays(1);
             Properties.Settings.Default.______midnight_time = date.ToString("yyyy-MM-dd 00:30");
-            Properties.Settings.Default.______start_detect = "4";
+            Properties.Settings.Default.______start_detect = "5";
             Properties.Settings.Default.Save();
         }
 
@@ -617,7 +625,7 @@ namespace YB_Cronos_Data
             label_status.Text = "Stop";
         }
 
-        private void timer_elapsed_Tick(object sender, EventArgs e)
+        private void timer_elapsed_Tick(object sender, EventArgs e) 
         {
             string start_datetime = __start_datetime_elapsed;
             DateTime start = DateTime.ParseExact(start_datetime, "dd/MM/yyyy HH:mm:ss", CultureInfo.InvariantCulture);
@@ -656,8 +664,11 @@ namespace YB_Cronos_Data
                     {
                         label_status.Text = "Running";
                         panel_status.Visible = true;
-                        label_start_datetime.Text = DateTime.Now.ToString("ddd, dd MMM HH:mm:ss");
-                        __start_datetime_elapsed = DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss");
+                        if (__start_datetime_elapsed == "")
+                        {
+                            label_start_datetime.Text = DateTime.Now.ToString("ddd, dd MMM HH:mm:ss");
+                            __start_datetime_elapsed = DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss");
+                        }
                         timer_elapsed.Start();
                         button_stop.Visible = false;
                         label_count.Visible = false;
@@ -1237,11 +1248,18 @@ namespace YB_Cronos_Data
                         var data = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12}", "YB", "\"" + _month + "\"", "\"" + _date + "\"", "\"" + _transaction_time + "\"", "\"" + _transaction_id + "\"", "\"" + _username + "\"", "\"" + _bonus_code + "\"", "\"" + _bonus_category + "\"", "\"" + _purpose + "\"", "\"" + _amount + "\"", "\"" + _vip + "\"", "\"" + "" + "\"", "\"" + "" + "\"");
                         _DATA.AppendLine(data);
                     }
+                    
+                    if (_display_count == 1)
+                    {
+                        var header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12}", "Brand", "Month", "Date", "Transaction Time", "Transaction ID", "Username", "Bonus Code", "Bonus Category", "Purpose", "Amount", "VIP", "Updated by", "Product");
+                        _DATA.AppendLine(header);
+                    }
                 }
 
                 if (__jo_count.ToString() != "0")
                 {
                     // BONUS SAVING TO EXCEL
+                    __detect_header = true;
                     string _current_datetime = DateTime.Now.ToString("yyyy-MM-dd");
 
                     label_yb_status.ForeColor = Color.FromArgb(78, 122, 159);
@@ -1356,6 +1374,8 @@ namespace YB_Cronos_Data
                     JToken _member = __jo.SelectToken("$.aaData[" + i + "].userId").ToString();
                     // -----
                     JToken _provider = __jo.SelectToken("$.aaData[" + i + "].vendorId").ToString();
+                    string _provider_replace = Regex.Replace(_provider.ToString(), @" ?\(.*?\)", string.Empty);
+                    _provider = _provider_replace;
                     // -----
                     JToken _category = __jo.SelectToken("$.aaData[" + i + "].gameType").ToString();
                     // -----
@@ -1389,11 +1409,10 @@ namespace YB_Cronos_Data
                     {
                         _ld_date = "";
                     }
-
                     // ----- Retained
                     string _retained = "";
-                    String _month_ = DateTime.Now.Month.ToString();
-                    String _year_ = DateTime.Now.Year.ToString();
+                    string _month_ = DateTime.Now.Month.ToString();
+                    string _year_ = DateTime.Now.Year.ToString();
                     string _year_month = _year_ + "-" + _month_;
                     if (_fd_date != "" && _ld_date != "")
                     {
@@ -1404,20 +1423,31 @@ namespace YB_Cronos_Data
                         DateTime _last2months_ = DateTime.ParseExact(_last2months.ToString("yyyy-MM-dd"), "yyyy-MM-dd", CultureInfo.InvariantCulture);
                         if (_ld_date_ >= _last2months_)
                         {
-                            _retained = "Retained";
+                            _retained = "Yes";
                         }
                         else
                         {
-                            _retained = "Not Retained";
+                            _retained = "No";
                         }
                     }
-                    // ----- New Based on Reg
-                    string _date_reg = "";
-                    string _new_based_on_reg = "";
-                    if (_date_reg != "")
+                    else
                     {
-                        DateTime _date_reg_replace = DateTime.ParseExact(_date_reg, "MM/dd/yyyy", CultureInfo.InvariantCulture);
-                        if (_date_reg_replace.ToString("yyyy-MM") == _year_month)
+                        _retained = "No";
+                    }
+                    // ----- New Based on Reg && Reg Month
+                    string _reg_month = await ___TURNOVER_REGMONTHsync(_member.ToString());
+                    string _month = "";
+                    string _date = "";
+                    string _new_based_on_reg = "";
+                    if (_reg_month != "")
+                    {
+                        DateTime _reg_month_replace = new DateTime(1970, 1, 1, 0, 0, 0, 0).AddSeconds(Math.Round(Convert.ToDouble(_reg_month.ToString()) / 1000d)).ToLocalTime();
+                        _reg_month = _reg_month_replace.ToString("MM/dd/yyyy");
+                        _month = _reg_month_replace.ToString("yyyy-MM-01");
+                        _date = _reg_month_replace.ToString("yyyy-MM-dd");
+
+                        DateTime _reg_month_replace_ = DateTime.ParseExact(_reg_month, "MM/dd/yyyy", CultureInfo.InvariantCulture);
+                        if (_reg_month_replace_.ToString("yyyy-MM") == _year_month)
                         {
                             _new_based_on_reg = "Yes";
                         }
@@ -1429,6 +1459,7 @@ namespace YB_Cronos_Data
                     else
                     {
                         _new_based_on_reg = "No";
+                        _reg_month = "";
                     }
                     // ----- New Based on Dep
                     // ----- Real Player
@@ -1450,19 +1481,129 @@ namespace YB_Cronos_Data
                     }
                     else
                     {
+                        _new_based_on_dep = "No";
                         _real_player = "No";
                     }
+                    
+                    if (_display_count == 1)
+                    {
+                        var header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17}", "Brand", "Provider", "Category", "Month", "Date", "Member", "Currency", "Stake", "Stake Ex. Draw", "Bet Count", "Company Winloss", "VIP", "Retained", "Reg Month", "First Dep Month", "New Based on Reg", "New Based on Dep", "Real Player");
+                        _DATA.AppendLine(header);
+                    }
+                    var data = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17}", "YB", "\"" + _provider + "\"", "\"" + _category + "\"", "\"" + _month + "\"", "\"" + _date + "\"", "\"" + _member + "\"", "\"" + "CNY" + "\"", "\"" + _stake + "\"", "\"" + _stake + "\"", "\"" + _bet_count + "\"", "\"" + _company_wl + "\"", "\"" + _vip + "\"", "\"" + _retained + "\"", "\"" + _reg_month + "\"", "\"" + _fd_date + "\"", "\"" + _new_based_on_reg + "\"", "\"" + _new_based_on_dep + "\"", "\"" + _real_player + "\"");
+                    _DATA.AppendLine(data);
+                }
 
-                    //MessageBox.Show("_member: " + _member + "\n_provider: " + _provider + "\n_category: " + _category + "\n_bet_count: " + _bet_count + "" +
-                    //    "\n_vip: " + _vip + "\n_stake: " + _stake + "\n_company_wl: " + _company_wl + "\n_submitted_date: " + _submitted_date);
+                if (__jo_count.ToString() != "0")
+                {
+                    // TURNOVER SAVING TO EXCEL
+                    string _current_datetime = DateTime.Now.ToString("yyyy-MM-dd");
 
-                    //if (_display_count == 1)
-                    //{
-                    //    var header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12}", "Brand", "Month", "Date", "Transaction Time", "Transaction ID", "Username", "Bonus Code", "Bonus Category", "Purpose", "Amount", "VIP", "Updated by", "Product");
-                    //    _DATA.AppendLine(header);
-                    //}
-                    //var data = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12}", "YB", "\"" + _month + "\"", "\"" + _date + "\"", "\"" + _transaction_time + "\"", "\"" + _transaction_id + "\"", "\"" + _username + "\"", "\"" + _bonus_code + "\"", "\"" + _bonus_category + "\"", "\"" + _purpose + "\"", "\"" + _amount + "\"", "\"" + _vip + "\"", "\"" + "" + "\"", "\"" + "" + "\"");
-                    //_DATA.AppendLine(data);
+                    label_yb_status.ForeColor = Color.FromArgb(78, 122, 159);
+                    label_yb_status.Text = "status: saving excel... --- TURNOVER RECORD";
+
+                    if (!Directory.Exists(__file_location + "\\Cronos Data"))
+                    {
+                        Directory.CreateDirectory(__file_location + "\\Cronos Data");
+                    }
+
+                    if (!Directory.Exists(__file_location + "\\Cronos Data\\YB"))
+                    {
+                        Directory.CreateDirectory(__file_location + "\\Cronos Data\\YB");
+                    }
+
+                    if (!Directory.Exists(__file_location + "\\Cronos Data\\YB\\" + _current_datetime))
+                    {
+                        Directory.CreateDirectory(__file_location + "\\Cronos Data\\YB\\" + _current_datetime);
+                    }
+
+                    if (!Directory.Exists(__file_location + "\\Cronos Data\\YB\\" + _current_datetime + "\\Turnover Record"))
+                    {
+                        Directory.CreateDirectory(__file_location + "\\Cronos Data\\YB\\" + _current_datetime + "\\Turnover Record");
+                    }
+
+                    string _folder_path_result = __file_location + "\\Cronos Data\\YB\\" + _current_datetime + "\\Turnover Record\\YB_TurnoverRecord_" + _current_datetime + "_1.txt";
+                    string _folder_path_result_xlsx = __file_location + "\\Cronos Data\\YB\\" + _current_datetime + "\\Turnover Record\\YB_TurnoverRecord_" + _current_datetime + "_1.xlsx";
+
+                    _DATA.ToString().Reverse();
+
+                    using (StreamWriter file = new StreamWriter(_folder_path_result, true, Encoding.UTF8))
+                    {
+                        file.Write(_DATA.ToString());
+                    }
+
+                    Excel.Application app = new Excel.Application();
+                    Excel.Workbook wb = app.Workbooks.Open(_folder_path_result, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing);
+                    Excel.Worksheet worksheet = wb.ActiveSheet;
+                    worksheet.Activate();
+                    worksheet.Application.ActiveWindow.SplitRow = 1;
+                    worksheet.Application.ActiveWindow.FreezePanes = true;
+                    Excel.Range firstRow = (Excel.Range)worksheet.Rows[1];
+                    firstRow.AutoFilter(1,
+                                        Type.Missing,
+                                        Excel.XlAutoFilterOperator.xlAnd,
+                                        Type.Missing,
+                                        true);
+                    Excel.Range usedRange = worksheet.UsedRange;
+                    Excel.Range rows = usedRange.Rows;
+                    int count = 0;
+                    foreach (Excel.Range row in rows)
+                    {
+                        if (count == 0)
+                        {
+                            Excel.Range firstCell = row.Cells[1];
+
+                            string firstCellValue = firstCell.Value as string;
+
+                            if (!string.IsNullOrEmpty(firstCellValue))
+                            {
+                                row.Interior.Color = Color.FromArgb(236, 103, 5);
+                                row.Font.Color = Color.FromArgb(255, 255, 255);
+                            }
+
+                            break;
+                        }
+
+                        count++;
+                    }
+                    int i_;
+                    for (i_ = 1; i_ <= 21; i_++)
+                    {
+                        worksheet.Columns[i_].ColumnWidth = 20;
+                    }
+                    wb.SaveAs(_folder_path_result_xlsx, Excel.XlFileFormat.xlOpenXMLWorkbook, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Excel.XlSaveAsAccessMode.xlExclusive, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing);
+                    wb.Close();
+                    app.Quit();
+                    Marshal.ReleaseComObject(app);
+
+                    if (File.Exists(_folder_path_result))
+                    {
+                        File.Delete(_folder_path_result);
+                    }
+
+                    _DATA.Clear();
+                }
+
+                // REGISTRATION SEND TO DATABASE
+                // AUTO START
+
+                // next bet record
+                Properties.Settings.Default.______start_detect = "5";
+                Properties.Settings.Default.Save();
+
+                panel_status.Visible = false;
+                label_yb_status.Text = "-";
+                label_page_count.Text = "-";
+                label_total_records.Text = "-";
+                button_start.Visible = true;
+                if (__is_autostart)
+                {
+                    comboBox_list.SelectedIndex = 4;
+                    button_start.PerformClick();
+                }
+                else
+                {
+                    panel_filter.Enabled = true;
                 }
             }
             catch (Exception err)
@@ -1550,6 +1691,26 @@ namespace YB_Cronos_Data
             return _payment_remark.ToString();
         }
 
+        private async Task<string> ___TURNOVER_REGMONTHsync(string username)
+        {
+            var cookie_manager = Cef.GetGlobalCookieManager();
+            var visitor = new CookieCollector();
+            cookie_manager.VisitUrlCookies(__url, true, visitor);
+            var cookies = await visitor.Task;
+            var cookie = CookieCollector.GetCookieHeader(cookies);
+            WebClient wc = new WebClient();
+            wc.Headers.Add("Cookie", cookie);
+            wc.Encoding = Encoding.UTF8;
+            wc.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
+
+            byte[] result = await wc.DownloadDataTaskAsync("http://103.4.104.8/manager/member/getProfileOverview?userId=" + username);
+            string responsebody = Encoding.UTF8.GetString(result);
+            var deserialize_object = JsonConvert.DeserializeObject(responsebody);
+            JObject _jo = JObject.Parse(deserialize_object.ToString());
+            JToken _reg_month = _jo.SelectToken("$.createTime").ToString();
+            return _reg_month.ToString();
+        }
+
         private async Task ___PAYMENT_DEPOSITAsync()
         {
             try
@@ -1627,7 +1788,7 @@ namespace YB_Cronos_Data
                     }
                     // -----
                     JToken _payment_type = __jo.SelectToken("$.aaData[" + i + "].type").ToString();
-                    if (_payment_type.ToString() == "1")
+                    if (_payment_type.ToString() == "0")
                     {
                         _payment_type = "Deposit";
                     }
@@ -1779,7 +1940,7 @@ namespace YB_Cronos_Data
                         DateTime _last2months_ = DateTime.ParseExact(_last2months.ToString("yyyy-MM-dd"), "yyyy-MM-dd", CultureInfo.InvariantCulture);
                         if (_ld_date_ >= _last2months_)
                         {
-                            _retained = "Retained";
+                            _retained = "Yes";
                         }
                         else
                         {
@@ -1823,6 +1984,7 @@ namespace YB_Cronos_Data
                 if (__jo_count.ToString() != "0")
                 {
                     // PAYMENT DEPOSIT SAVING TO EXCEL
+                    __detect_header = true;
                     string _current_datetime = DateTime.Now.ToString("yyyy-MM-dd");
 
                     label_yb_status.ForeColor = Color.FromArgb(78, 122, 159);
@@ -2152,8 +2314,21 @@ namespace YB_Cronos_Data
                         }
                     }
                     
-                    var data = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},{19},{20}", "YB", "\"" + _month + "\"", "\"" + _date + "\"", "\"" + _time + "\"", "\"" + _submitted_date + "\"", "\"" + _updated_date + "\"", "\"" + _member + "\"", "\"" + "" + "\"", "\"" + _transaction_id + "\"", "\"" + _amount + "\"", "\"" + _transaction_time + "\"", "\"" + "Withdrawal" + "\"", "\"" + _duration_time + "\"", "\"" + _vip + "\"", "\"" + _status + "\"", "\"" + "LOCAL BANK" + "\"", "\"" + "LOCAL BANK" + "\"", "\"" + _retained + "\"", "\"" + _fd_date + "\"", "\"" + _new + "\"", "\"" + _reactivated + "\"");
-                    _DATA.AppendLine(data);
+                    if (__detect_header)
+                    {
+                        var data = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},{19},{20}", "YB", "\"" + _month + "\"", "\"" + _date + "\"", "\"" + _time + "\"", "\"" + _submitted_date + "\"", "\"" + _updated_date + "\"", "\"" + _member + "\"", "\"" + "" + "\"", "\"" + _transaction_id + "\"", "\"" + _amount + "\"", "\"" + _transaction_time + "\"", "\"" + "Withdrawal" + "\"", "\"" + _duration_time + "\"", "\"" + _vip + "\"", "\"" + _status + "\"", "\"" + "LOCAL BANK" + "\"", "\"" + "LOCAL BANK" + "\"", "\"" + _retained + "\"", "\"" + _fd_date + "\"", "\"" + _new + "\"", "\"" + _reactivated + "\"");
+                        _DATA.AppendLine(data);
+                    }
+                    else
+                    {
+                        if (_display_count == 1)
+                        {
+                            var header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},{19},{20}", "Brand", "Month", "Date", "Time", "Submitted Date", "Updated Date", "Member", "Payment Type", "Transaction ID", "Amount", "Transaction Time", "Transaction Type", "Duration Time", "VIP", "Status", "PG Company", "PG Type", "Retained", "FD Date", "New", "Reactivated");
+                            _DATA.AppendLine(header);
+                        }
+                        var data = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},{19},{20}", "YB", "\"" + _month + "\"", "\"" + _date + "\"", "\"" + _time + "\"", "\"" + _submitted_date + "\"", "\"" + _updated_date + "\"", "\"" + _member + "\"", "\"" + "" + "\"", "\"" + _transaction_id + "\"", "\"" + _amount + "\"", "\"" + _transaction_time + "\"", "\"" + "Deposit" + "\"", "\"" + _duration_time + "\"", "\"" + _vip + "\"", "\"" + _status + "\"", "\"" + "LOCAL BANK" + "\"", "\"" + "LOCAL BANK" + "\"", "\"" + _retained + "\"", "\"" + _fd_date + "\"", "\"" + _new + "\"", "\"" + _reactivated + "\"");
+                        _DATA.AppendLine(data);
+                    }
                 }
 
                 if (__jo_count.ToString() != "0")
@@ -2262,6 +2437,7 @@ namespace YB_Cronos_Data
                 label_page_count.Text = "-";
                 label_total_records.Text = "-";
                 button_start.Visible = true;
+                __detect_header = false;
                 if (__is_autostart)
                 {
                     comboBox_list.SelectedIndex = 2;
@@ -2331,6 +2507,7 @@ namespace YB_Cronos_Data
                 label_page_count.Text = "1 of 1";
                 label_total_records.Text = "0 of " + __jo_count.Count().ToString("N0");
                 label_yb_status.Text = "status: getting data... --- A-BONUS RECORD";
+                
                 // BONUS ADJUSTMENT PROCESS DATA
                 StringBuilder _DATA = new StringBuilder();
                 int _display_count = 0;
@@ -2489,8 +2666,30 @@ namespace YB_Cronos_Data
                             SendMyBot(err.ToString());
                         }
 
-                        var data = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12}", "YB", "\"" + _month + "\"", "\"" + _date + "\"", "\"" + _transaction_time + "\"", "\"" + _transaction_id + "\"", "\"" + _username + "\"", "\"" + _bonus_code + "\"", "\"" + _bonus_category + "\"", "\"" + _purpose + "\"", "\"" + _amount + "\"", "\"" + _vip + "\"", "\"" + "" + "\"", "\"" + "" + "\"");
-                        _DATA.AppendLine(data);
+                        if (__detect_header)
+                        {
+                            var data = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12}", "YB", "\"" + _month + "\"", "\"" + _date + "\"", "\"" + _transaction_time + "\"", "\"" + _transaction_id + "\"", "\"" + _username + "\"", "\"" + _bonus_code + "\"", "\"" + _bonus_category + "\"", "\"" + _purpose + "\"", "\"" + _amount + "\"", "\"" + _vip + "\"", "\"" + "" + "\"", "\"" + "" + "\"");
+                            _DATA.AppendLine(data);
+                        }
+                        else
+                        {
+                            if (_display_count == 1)
+                            {
+                                var header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12}", "Brand", "Month", "Date", "Transaction Time", "Transaction ID", "Username", "Bonus Code", "Bonus Category", "Purpose", "Amount", "VIP", "Updated by", "Product");
+                                _DATA.AppendLine(header);
+                            }
+                            var data = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12}", "YB", "\"" + _month + "\"", "\"" + _date + "\"", "\"" + _transaction_time + "\"", "\"" + _transaction_id + "\"", "\"" + _username + "\"", "\"" + _bonus_code + "\"", "\"" + _bonus_category + "\"", "\"" + _purpose + "\"", "\"" + _amount + "\"", "\"" + _vip + "\"", "\"" + "" + "\"", "\"" + "" + "\"");
+                            _DATA.AppendLine(data);
+                        }
+                    }
+
+                    if (!__detect_header)
+                    {
+                        if (_display_count == 1)
+                        {
+                            var header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12}", "Brand", "Month", "Date", "Transaction Time", "Transaction ID", "Username", "Bonus Code", "Bonus Category", "Purpose", "Amount", "VIP", "Updated by", "Product");
+                            _DATA.AppendLine(header);
+                        }
                     }
                 }
 
@@ -2597,6 +2796,7 @@ namespace YB_Cronos_Data
                 label_page_count.Text = "-";
                 label_total_records.Text = "-";
                 button_start.Visible = true;
+                __detect_header = false;
                 if (__is_autostart)
                 {
                     comboBox_list.SelectedIndex = 3;
@@ -2873,3 +3073,4 @@ namespace YB_Cronos_Data
 // clear
 // __getdata_affiliatelist
 // __getdata_bonuscode
+// __start_datetime_elapsed = ""
