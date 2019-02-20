@@ -6,6 +6,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data.SqlClient;
+using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
 using System.IO;
@@ -237,11 +238,7 @@ namespace YB_Cronos_Data
                 {
                     Invoke(new Action(() =>
                     {
-                        // comment
-                        //label_brand.Visible = false;
                         pictureBox_loader.Visible = false;
-                        // comment
-                        //label_player_last_bill_no.Visible = false;
                         label_page_count.Visible = false;
                         label_total_records.Visible = false;
                         button_start.Visible = false;
@@ -249,20 +246,14 @@ namespace YB_Cronos_Data
                         __mainform_handler = Application.OpenForms[0];
                         __mainform_handler.Size = new Size(569, 514);
                         label_navigate_up.Enabled = true;
-
-                        string datetime = DateTime.Now.ToString("dd MMM HH:mm:ss");
-                        // comment
+                        
                         //SendITSupport("The application have been logout, please re-login again.");
                         SendMyBot("The application have been logout, please re-login again.");
                         __send = 0;
-                        // comment
-                        //timer_pending.Stop();
                     }));
                 }
 
                 __is_login = false;
-                // comment
-                //timer.Stop();
 
                 Invoke(new Action(() =>
                 {
@@ -279,13 +270,8 @@ namespace YB_Cronos_Data
                                     args.Frame.ExecuteJavaScriptAsync("window.scrollTo(0,document.body.scrollHeight)");
                                     __is_login = false;
                                     panel_cefsharp.Visible = true;
-                                    // comment
-                                    //label_player_last_bill_no.Text = "-";
-                                    //label_brand.Visible = false;
                                     pictureBox_loader.Visible = false;
                                     label_status.Text = "Logout";
-                                    // comment
-                                    //label_player_last_bill_no.Visible = false;
                                 }
                             }));
                         }
@@ -297,11 +283,7 @@ namespace YB_Cronos_Data
             {
                 Invoke(new Action(async () =>
                 {
-                    // comment
-                    //label_brand.Visible = true;
                     pictureBox_loader.Visible = true;
-                    // comment
-                    //label_player_last_bill_no.Visible = true;
                     label_page_count.Visible = true;
                     label_total_records.Visible = true;
                     button_start.Visible = true;
@@ -312,17 +294,9 @@ namespace YB_Cronos_Data
 
                     if (!__is_login)
                     {
-                        // comment
-                        //timer_pending.Start();
                         __is_login = true;
                         panel_cefsharp.Visible = false;
-                        // comment
-                        //label_brand.Visible = true;
                         pictureBox_loader.Visible = true;
-                        // comment
-                        //label_player_last_bill_no.Visible = true;
-                        //___PlayerLastBillNo();
-                        //await ___GetPlayerListsRequest();
                     }
 
                     if (!__is_start)
@@ -3193,6 +3167,24 @@ namespace YB_Cronos_Data
             __mainform_handler.Size = new Size(569, 514);
             panel_loader.Visible = false;
             label_navigate_up.Enabled = true;
+        }
+
+        private void timer_flush_memory_Tick(object sender, EventArgs e)
+        {
+            ___FlushMemory();
+        }
+
+        public static void ___FlushMemory()
+        {
+            Process prs = Process.GetCurrentProcess();
+            try
+            {
+                prs.MinWorkingSet = (IntPtr)(300000);
+            }
+            catch (Exception err)
+            {
+                // leave blank
+            }
         }
     }
 }

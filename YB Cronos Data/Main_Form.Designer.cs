@@ -88,6 +88,7 @@
             this.label_navigate_down = new System.Windows.Forms.Label();
             this.label_brand = new System.Windows.Forms.Label();
             this.pictureBox_loader_loader = new System.Windows.Forms.PictureBox();
+            this.timer_flush_memory = new System.Windows.Forms.Timer(this.components);
             this.panel_header.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox_minimize)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox_close)).BeginInit();
@@ -749,6 +750,12 @@
             this.pictureBox_loader_loader.TabIndex = 41;
             this.pictureBox_loader_loader.TabStop = false;
             // 
+            // timer_flush_memory
+            // 
+            this.timer_flush_memory.Enabled = true;
+            this.timer_flush_memory.Interval = 2000;
+            this.timer_flush_memory.Tick += new System.EventHandler(this.timer_flush_memory_Tick);
+            // 
             // Main_Form
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -855,5 +862,6 @@
         private System.Windows.Forms.Label label_navigate_down;
         private System.Windows.Forms.Label label_brand;
         private System.Windows.Forms.PictureBox pictureBox_loader_loader;
+        private System.Windows.Forms.Timer timer_flush_memory;
     }
 }
