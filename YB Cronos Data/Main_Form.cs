@@ -23,7 +23,7 @@ namespace YB_Cronos_Data
 {
     public partial class Main_Form : Form
     {
-        private string __url_01 = "http://103.4.104.8/page/manager/login.jsp";
+        private string __root_url = "http://103.4.104.8";
         private string __url = "";
         private string __start_datetime_elapsed = "";
         private string __file_location = "\\\\192.168.10.22\\ssi-reporting";
@@ -200,7 +200,7 @@ namespace YB_Cronos_Data
 
         private void pictureBox_close_Click(object sender, EventArgs e)
         {
-            DialogResult dr = MessageBox.Show("Exit the program?", "YB Cronos Data", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            DialogResult dr = MessageBox.Show("Exit the program?", __brand_code + " Cronos Data", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
             if (dr == DialogResult.Yes)
             {
                 __is_close = false;
@@ -223,7 +223,7 @@ namespace YB_Cronos_Data
 
             settings.CachePath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + @"\CEF";
             Cef.Initialize(settings);
-            chromeBrowser = new ChromiumWebBrowser(__url_01);
+            chromeBrowser = new ChromiumWebBrowser(__root_url + "/page/manager/login.jsp");
             panel_cefsharp.Controls.Add(chromeBrowser);
             chromeBrowser.AddressChanged += ChromiumBrowserAddressChanged;
         }
@@ -232,7 +232,7 @@ namespace YB_Cronos_Data
         private void ChromiumBrowserAddressChanged(object sender, AddressChangedEventArgs e)
         {
             __url = e.Address.ToString();
-            if (e.Address.ToString().Equals(__url_01))
+            if (e.Address.ToString().Equals(__root_url + "/page/manager/login.jsp"))
             {
                 if (__is_login)
                 {
@@ -280,7 +280,7 @@ namespace YB_Cronos_Data
                 }));
             }
 
-            if (e.Address.ToString().Equals("http://103.4.104.8/page/manager/member/search.jsp") || e.Address.ToString().Equals("http://103.4.104.8/page/manager/dashboard.jsp"))
+            if (e.Address.ToString().Equals(__root_url + "/page/manager/member/search.jsp") || e.Address.ToString().Equals(__root_url + "/page/manager/dashboard.jsp"))
             {
                 Invoke(new Action(async () =>
                 {
@@ -574,7 +574,7 @@ namespace YB_Cronos_Data
             }
             else
             {
-                MessageBox.Show("No data found.", "YB Cronos Data", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show("No data found.", __brand_code + " Cronos Data", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 panel_filter.Enabled = true;
             }
             
@@ -700,7 +700,7 @@ namespace YB_Cronos_Data
                 end = end.Replace(":", "%3A");
 
                 label_page_count.Text = "-";
-                byte[] result = await wc.DownloadDataTaskAsync("http://103.4.104.8/manager/member/searchMember?userId=&userName=&email=&lastDepositSince=&lastBetTimeSince=&noLoginSince=&loginIp=&vipLevel=-1&phoneNumber=&registeredDateStart=" + start + "&registeredDateEnd=" + end + "&birthOfDateStart=&birthOfDateEnd=&searchType=1&affiliateCode=All&pageNumber=1&pageSize=" + __display_length + "&sortCondition=1&sortName=sign_up_time&sortOrder=1&searchText=");
+                byte[] result = await wc.DownloadDataTaskAsync(__root_url + "/manager/member/searchMember?userId=&userName=&email=&lastDepositSince=&lastBetTimeSince=&noLoginSince=&loginIp=&vipLevel=-1&phoneNumber=&registeredDateStart=" + start + "&registeredDateEnd=" + end + "&birthOfDateStart=&birthOfDateEnd=&searchType=1&affiliateCode=All&pageNumber=1&pageSize=" + __display_length + "&sortCondition=1&sortName=sign_up_time&sortOrder=1&searchText=");
                 string responsebody = Encoding.UTF8.GetString(result);
                 var deserialize_object = JsonConvert.DeserializeObject(responsebody);
                 __jo = JObject.Parse(deserialize_object.ToString());
@@ -834,7 +834,7 @@ namespace YB_Cronos_Data
                         var header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},{19},{20}", "Brand", "Username", "Name", "Status", "Date Registered", "Last Login Date", "Last Deposit Date", "Contact Number", "Email", "VIP Level", "Registration Date", "Month Reg", "First Deposit Date", "First Deposit Month", "IP Address", "Affiliate", "Source", "Date of Birth", "User ID", "Wechat", "QQ");
                         _DATA.AppendLine(header);
                     }
-                    var data = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},{19},{20}", "YB", "\"" + _username + "\"", "\"" + _name + "\"", "\"" + _status + "\"", "\"" + _registration_date + "\"", "\"" + _last_login_date + "\"", "\"" + _ld_date + "\"", "\"" + _contact_number + "\"", "\"" + _email + "\"", "\"" + _vip + "\"", "\"" + _registration_date + "\"", "\"" + _month_reg + "\"", "\"" + _fd_date + "\"", "\"" + _first_fd_month + "\"", "\"" + _ip_address + "\"", "\"" + _affiliate_url + "\"", "\"" + _source + "\"", "\"" + _dob + "\"", "\"" + "" + "\"", "\"" + "" + "\"", "\"" + "" + "\"");
+                    var data = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},{19},{20}", __brand_code, "\"" + _username + "\"", "\"" + _name + "\"", "\"" + _status + "\"", "\"" + _registration_date + "\"", "\"" + _last_login_date + "\"", "\"" + _ld_date + "\"", "\"" + _contact_number + "\"", "\"" + _email + "\"", "\"" + _vip + "\"", "\"" + _registration_date + "\"", "\"" + _month_reg + "\"", "\"" + _fd_date + "\"", "\"" + _first_fd_month + "\"", "\"" + _ip_address + "\"", "\"" + _affiliate_url + "\"", "\"" + _source + "\"", "\"" + _dob + "\"", "\"" + "" + "\"", "\"" + "" + "\"", "\"" + "" + "\"");
                     _DATA.AppendLine(data);
                 }
 
@@ -852,18 +852,18 @@ namespace YB_Cronos_Data
                         Directory.CreateDirectory(__file_location + "\\Cronos Data");
                     }
 
-                    if (!Directory.Exists(__file_location + "\\Cronos Data\\YB"))
+                    if (!Directory.Exists(__file_location + "\\Cronos Data\\" + __brand_code))
                     {
-                        Directory.CreateDirectory(__file_location + "\\Cronos Data\\YB");
+                        Directory.CreateDirectory(__file_location + "\\Cronos Data\\" + __brand_code);
                     }
 
-                    if (!Directory.Exists(__file_location + "\\Cronos Data\\YB\\" + _current_datetime))
+                    if (!Directory.Exists(__file_location + "\\Cronos Data\\" + __brand_code + "\\" + _current_datetime))
                     {
-                        Directory.CreateDirectory(__file_location + "\\Cronos Data\\YB\\" + _current_datetime);
+                        Directory.CreateDirectory(__file_location + "\\Cronos Data\\" + __brand_code + "\\" + _current_datetime);
                     }
 
-                    string _folder_path_result = __file_location + "\\Cronos Data\\YB\\" + _current_datetime + "\\YB Registration.txt";
-                    string _folder_path_result_xlsx = __file_location + "\\Cronos Data\\YB\\" + _current_datetime + "\\YB Registration.xlsx";
+                    string _folder_path_result = __file_location + "\\Cronos Data\\" + __brand_code + "\\" + _current_datetime + "\\" + __brand_code + " Registration.txt";
+                    string _folder_path_result_xlsx = __file_location + "\\Cronos Data\\" + __brand_code + "\\" + _current_datetime + "\\" + __brand_code + " Registration.xlsx";
 
                     if (File.Exists(_folder_path_result))
                     {
@@ -999,7 +999,7 @@ namespace YB_Cronos_Data
                 end = end.Replace("00:00:00", "");
 
                 label_page_count.Text = "-";
-                byte[] result = await wc.DownloadDataTaskAsync("http://103.4.104.8/manager/ReportController/searchBonusReport?userName=&category=-1&type=-1&templateStatus=-1&createTimeStart=" + start + "&createTimeEnd=" + end + "&pageNumber=1&pageSize=" + __display_length + "&sortCondition=9&sortName=createTime&sortOrder=1&searchText=");
+                byte[] result = await wc.DownloadDataTaskAsync(__root_url + "/manager/ReportController/searchBonusReport?userName=&category=-1&type=-1&templateStatus=-1&createTimeStart=" + start + "&createTimeEnd=" + end + "&pageNumber=1&pageSize=" + __display_length + "&sortCondition=9&sortName=createTime&sortOrder=1&searchText=");
                 string responsebody = Encoding.UTF8.GetString(result);
                 var deserialize_object = JsonConvert.DeserializeObject(responsebody);
                 __jo = JObject.Parse(deserialize_object.ToString());
@@ -1206,7 +1206,7 @@ namespace YB_Cronos_Data
                             var header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12}", "Brand", "Month", "Date", "Transaction Time", "Transaction ID", "Username", "Bonus Code", "Bonus Category", "Purpose", "Amount", "VIP", "Updated by", "Product");
                             _DATA.AppendLine(header);
                         }
-                        var data = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12}", "YB", "\"" + _month + "\"", "\"" + _date + "\"", "\"" + _transaction_time + "\"", "\"" + _transaction_id + "\"", "\"" + _username + "\"", "\"" + _bonus_code + "\"", "\"" + _bonus_category + "\"", "\"" + _purpose + "\"", "\"" + _amount + "\"", "\"" + _vip + "\"", "\"" + "" + "\"", "\"" + "" + "\"");
+                        var data = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12}", __brand_code, "\"" + _month + "\"", "\"" + _date + "\"", "\"" + _transaction_time + "\"", "\"" + _transaction_id + "\"", "\"" + _username + "\"", "\"" + _bonus_code + "\"", "\"" + _bonus_category + "\"", "\"" + _purpose + "\"", "\"" + _amount + "\"", "\"" + _vip + "\"", "\"" + "" + "\"", "\"" + "" + "\"");
                         _DATA.AppendLine(data);
                     }
                     
@@ -1231,23 +1231,23 @@ namespace YB_Cronos_Data
                         Directory.CreateDirectory(__file_location + "\\Cronos Data");
                     }
 
-                    if (!Directory.Exists(__file_location + "\\Cronos Data\\YB"))
+                    if (!Directory.Exists(__file_location + "\\Cronos Data\\" + __brand_code))
                     {
-                        Directory.CreateDirectory(__file_location + "\\Cronos Data\\YB");
+                        Directory.CreateDirectory(__file_location + "\\Cronos Data\\" + __brand_code);
                     }
 
-                    if (!Directory.Exists(__file_location + "\\Cronos Data\\YB\\" + _current_datetime))
+                    if (!Directory.Exists(__file_location + "\\Cronos Data\\" + __brand_code + "\\" + _current_datetime))
                     {
-                        Directory.CreateDirectory(__file_location + "\\Cronos Data\\YB\\" + _current_datetime);
+                        Directory.CreateDirectory(__file_location + "\\Cronos Data\\" + __brand_code + "\\" + _current_datetime);
                     }
 
-                    if (!Directory.Exists(__file_location + "\\Cronos Data\\YB\\" + _current_datetime + "\\Bonus Report"))
+                    if (!Directory.Exists(__file_location + "\\Cronos Data\\" + __brand_code + "\\" + _current_datetime + "\\Bonus Report"))
                     {
-                        Directory.CreateDirectory(__file_location + "\\Cronos Data\\YB\\" + _current_datetime + "\\Bonus Report");
+                        Directory.CreateDirectory(__file_location + "\\Cronos Data\\" + __brand_code + "\\" + _current_datetime + "\\Bonus Report");
                     }
 
-                    string _folder_path_result = __file_location + "\\Cronos Data\\YB\\" + _current_datetime + "\\Bonus Report\\YB_BonusReport_" + _current_datetime + "_1.txt";
-                    string _folder_path_result_xlsx = __file_location + "\\Cronos Data\\YB\\" + _current_datetime + "\\Bonus Report\\YB_BonusReport_" + _current_datetime + "_1.xlsx";
+                    string _folder_path_result = __file_location + "\\Cronos Data\\" + __brand_code + "\\" + _current_datetime + "\\Bonus Report\\" + __brand_code + "_BonusReport_" + _current_datetime + "_1.txt";
+                    string _folder_path_result_xlsx = __file_location + "\\Cronos Data\\" + __brand_code + "\\" + _current_datetime + "\\Bonus Report\\" + __brand_code + "_BonusReport_" + _current_datetime + "_1.xlsx";
 
                     if (File.Exists(_folder_path_result))
                     {
@@ -1312,7 +1312,7 @@ namespace YB_Cronos_Data
                 end = end.Replace("00:00:00", "");
 
                 label_page_count.Text = "-";
-                byte[] result = await wc.DownloadDataTaskAsync("http://103.4.104.8/manager/ReportController/searchTurnReport?userName=&type=-1&placedDateStart=" + start + "&placedDateEnd=" + end + "&pageNumber=1&pageSize=" + __display_length + "&sortCondition=3&sortName=summaryDate&sortOrder=1&searchText=");
+                byte[] result = await wc.DownloadDataTaskAsync(__root_url + "/manager/ReportController/searchTurnReport?userName=&type=-1&placedDateStart=" + start + "&placedDateEnd=" + end + "&pageNumber=1&pageSize=" + __display_length + "&sortCondition=3&sortName=summaryDate&sortOrder=1&searchText=");
                 string responsebody = Encoding.UTF8.GetString(result);
                 var deserialize_object = JsonConvert.DeserializeObject(responsebody);
                 __jo = JObject.Parse(deserialize_object.ToString());
@@ -1467,7 +1467,7 @@ namespace YB_Cronos_Data
                         var header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17}", "Brand", "Provider", "Category", "Month", "Date", "Member", "Currency", "Stake", "Stake Ex. Draw", "Bet Count", "Company Winloss", "VIP", "Retained", "Reg Month", "First Dep Month", "New Based on Reg", "New Based on Dep", "Real Player");
                         _DATA.AppendLine(header);
                     }
-                    var data = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17}", "YB", "\"" + _provider + "\"", "\"" + _category + "\"", "\"" + _month + "\"", "\"" + _date + "\"", "\"" + _member + "\"", "\"" + "CNY" + "\"", "\"" + _stake + "\"", "\"" + _stake + "\"", "\"" + _bet_count + "\"", "\"" + _company_wl + "\"", "\"" + _vip + "\"", "\"" + _retained + "\"", "\"" + _reg_month + "\"", "\"" + _fd_date + "\"", "\"" + _new_based_on_reg + "\"", "\"" + _new_based_on_dep + "\"", "\"" + _real_player + "\"");
+                    var data = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17}", __brand_code, "\"" + _provider + "\"", "\"" + _category + "\"", "\"" + _month + "\"", "\"" + _date + "\"", "\"" + _member + "\"", "\"" + "CNY" + "\"", "\"" + _stake + "\"", "\"" + _stake + "\"", "\"" + _bet_count + "\"", "\"" + _company_wl + "\"", "\"" + _vip + "\"", "\"" + _retained + "\"", "\"" + _reg_month + "\"", "\"" + _fd_date + "\"", "\"" + _new_based_on_reg + "\"", "\"" + _new_based_on_dep + "\"", "\"" + _real_player + "\"");
                     _DATA.AppendLine(data);
                 }
 
@@ -1484,23 +1484,23 @@ namespace YB_Cronos_Data
                         Directory.CreateDirectory(__file_location + "\\Cronos Data");
                     }
 
-                    if (!Directory.Exists(__file_location + "\\Cronos Data\\YB"))
+                    if (!Directory.Exists(__file_location + "\\Cronos Data\\" + __brand_code))
                     {
-                        Directory.CreateDirectory(__file_location + "\\Cronos Data\\YB");
+                        Directory.CreateDirectory(__file_location + "\\Cronos Data\\" + __brand_code);
                     }
 
-                    if (!Directory.Exists(__file_location + "\\Cronos Data\\YB\\" + _current_datetime))
+                    if (!Directory.Exists(__file_location + "\\Cronos Data\\" + __brand_code + "\\" + _current_datetime))
                     {
-                        Directory.CreateDirectory(__file_location + "\\Cronos Data\\YB\\" + _current_datetime);
+                        Directory.CreateDirectory(__file_location + "\\Cronos Data\\" + __brand_code + "\\" + _current_datetime);
                     }
 
-                    if (!Directory.Exists(__file_location + "\\Cronos Data\\YB\\" + _current_datetime + "\\Turnover Record"))
+                    if (!Directory.Exists(__file_location + "\\Cronos Data\\" + __brand_code + "\\" + _current_datetime + "\\Turnover Record"))
                     {
-                        Directory.CreateDirectory(__file_location + "\\Cronos Data\\YB\\" + _current_datetime + "\\Turnover Record");
+                        Directory.CreateDirectory(__file_location + "\\Cronos Data\\" + __brand_code + "\\" + _current_datetime + "\\Turnover Record");
                     }
 
-                    string _folder_path_result = __file_location + "\\Cronos Data\\YB\\" + _current_datetime + "\\Turnover Record\\YB_TurnoverRecord_" + _current_datetime + "_1.txt";
-                    string _folder_path_result_xlsx = __file_location + "\\Cronos Data\\YB\\" + _current_datetime + "\\Turnover Record\\YB_TurnoverRecord_" + _current_datetime + "_1.xlsx";
+                    string _folder_path_result = __file_location + "\\Cronos Data\\" + __brand_code + "\\" + _current_datetime + "\\Turnover Record\\" + __brand_code + "_TurnoverRecord_" + _current_datetime + "_1.txt";
+                    string _folder_path_result_xlsx = __file_location + "\\Cronos Data\\" + __brand_code + "\\" + _current_datetime + "\\Turnover Record\\" + __brand_code + "_TurnoverRecord_" + _current_datetime + "_1.xlsx";
 
                     _DATA.ToString().Reverse();
 
@@ -1626,7 +1626,7 @@ namespace YB_Cronos_Data
                 wc.Encoding = Encoding.UTF8;
                 wc.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
 
-                byte[] result = await wc.DownloadDataTaskAsync("http://103.4.104.8/manager/ReportController/searchBetReport");
+                byte[] result = await wc.DownloadDataTaskAsync(__root_url + "/manager/ReportController/searchBetReport");
                 string responsebody = Encoding.UTF8.GetString(result);
                 var deserialize_object = JsonConvert.DeserializeObject(responsebody);
                 JObject _jo = JObject.Parse(deserialize_object.ToString());
@@ -1651,22 +1651,22 @@ namespace YB_Cronos_Data
                             Directory.CreateDirectory(__file_location + "\\Cronos Data");
                         }
 
-                        if (!Directory.Exists(__file_location + "\\Cronos Data\\YB"))
+                        if (!Directory.Exists(__file_location + "\\Cronos Data\\" + __brand_code))
                         {
-                            Directory.CreateDirectory(__file_location + "\\Cronos Data\\YB");
+                            Directory.CreateDirectory(__file_location + "\\Cronos Data\\" + __brand_code);
                         }
 
-                        if (!Directory.Exists(__file_location + "\\Cronos Data\\YB\\" + _current_datetime))
+                        if (!Directory.Exists(__file_location + "\\Cronos Data\\" + __brand_code + "\\" + _current_datetime))
                         {
-                            Directory.CreateDirectory(__file_location + "\\Cronos Data\\YB\\" + _current_datetime);
+                            Directory.CreateDirectory(__file_location + "\\Cronos Data\\" + __brand_code + "\\" + _current_datetime);
                         }
 
-                        if (!Directory.Exists(__file_location + "\\Cronos Data\\YB\\" + _current_datetime + "\\Bet Record"))
+                        if (!Directory.Exists(__file_location + "\\Cronos Data\\" + __brand_code + "\\" + _current_datetime + "\\Bet Record"))
                         {
-                            Directory.CreateDirectory(__file_location + "\\Cronos Data\\YB\\" + _current_datetime + "\\Bet Record");
+                            Directory.CreateDirectory(__file_location + "\\Cronos Data\\" + __brand_code + "\\" + _current_datetime + "\\Bet Record");
                         }
                         
-                        string _folder_path_result_xlsx = __file_location + "\\Cronos Data\\YB\\" + _current_datetime + "\\Bet Record\\" + _file_name + ".xlsx";
+                        string _folder_path_result_xlsx = __file_location + "\\Cronos Data\\" + __brand_code + "\\" + _current_datetime + "\\Bet Record\\" + _file_name + ".xlsx";
 
                         if (File.Exists(_folder_path_result_xlsx))
                         {
@@ -1674,7 +1674,7 @@ namespace YB_Cronos_Data
                         }
 
                         await wc.DownloadFileTaskAsync(
-                            new Uri("http://103.4.104.8/manager/ReportController/downloadBetReport?fileName=" + _file_name + "&realName=" + _name),
+                            new Uri(__root_url + "/manager/ReportController/downloadBetReport?fileName=" + _file_name + "&realName=" + _name),
                             _folder_path_result_xlsx
                         );
                         
@@ -1713,7 +1713,7 @@ namespace YB_Cronos_Data
             wc.Encoding = Encoding.UTF8;
             wc.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
 
-            byte[] result = await wc.DownloadDataTaskAsync("http://103.4.104.8/manager/member/getProfileOverview?userId=" + username);
+            byte[] result = await wc.DownloadDataTaskAsync(__root_url + "/manager/member/getProfileOverview?userId=" + username);
             string responsebody = Encoding.UTF8.GetString(result);
             var deserialize_object = JsonConvert.DeserializeObject(responsebody);
             JObject _jo = JObject.Parse(deserialize_object.ToString());
@@ -1733,7 +1733,7 @@ namespace YB_Cronos_Data
             wc.Encoding = Encoding.UTF8;
             wc.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
 
-            byte[] result = await wc.DownloadDataTaskAsync("http://103.4.104.8/manager/member/getProfileOverview?userId=" + username);
+            byte[] result = await wc.DownloadDataTaskAsync(__root_url + "/manager/member/getProfileOverview?userId=" + username);
             string responsebody = Encoding.UTF8.GetString(result);
             var deserialize_object = JsonConvert.DeserializeObject(responsebody);
             JObject _jo = JObject.Parse(deserialize_object.ToString());
@@ -1753,7 +1753,7 @@ namespace YB_Cronos_Data
             wc.Encoding = Encoding.UTF8;
             wc.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
 
-            byte[] result = await wc.DownloadDataTaskAsync("http://103.4.104.8/manager/payment/getAdjustmentDetail?id=" + id);
+            byte[] result = await wc.DownloadDataTaskAsync(__root_url + "/manager/payment/getAdjustmentDetail?id=" + id);
             string responsebody = Encoding.UTF8.GetString(result);
             var deserialize_object = JsonConvert.DeserializeObject(responsebody);
             JObject _jo = JObject.Parse(deserialize_object.ToString());
@@ -1775,7 +1775,7 @@ namespace YB_Cronos_Data
             wc.Encoding = Encoding.UTF8;
             wc.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
 
-            byte[] result = await wc.DownloadDataTaskAsync("http://103.4.104.8/manager/member/getProfileOverview?userId=" + username);
+            byte[] result = await wc.DownloadDataTaskAsync(__root_url + "/manager/member/getProfileOverview?userId=" + username);
             string responsebody = Encoding.UTF8.GetString(result);
             var deserialize_object = JsonConvert.DeserializeObject(responsebody);
             JObject _jo = JObject.Parse(deserialize_object.ToString());
@@ -1808,7 +1808,7 @@ namespace YB_Cronos_Data
                 end = end.Replace(":", "%3A");
 
                 label_page_count.Text = "-";
-                byte[] result = await wc.DownloadDataTaskAsync("http://103.4.104.8/manager/payment/searchDeposit?transactionId=&referenceNo=&userId=&status=9999&type=0&toBankIdOrBranch=-1&createDateStart=" + start + "&createDateEnd=" + end + "&vipLevel=-1&approvedDateStart=&approvedDateEnd=&pageNumber=1&pageSize=" + __display_length +"&sortCondition=4&sortName=createTime&sortOrder=1&searchText=");
+                byte[] result = await wc.DownloadDataTaskAsync(__root_url + "/manager/payment/searchDeposit?transactionId=&referenceNo=&userId=&status=9999&type=0&toBankIdOrBranch=-1&createDateStart=" + start + "&createDateEnd=" + end + "&vipLevel=-1&approvedDateStart=&approvedDateEnd=&pageNumber=1&pageSize=" + __display_length +"&sortCondition=4&sortName=createTime&sortOrder=1&searchText=");
                 string responsebody = Encoding.UTF8.GetString(result);
                 var deserialize_object = JsonConvert.DeserializeObject(responsebody);
                 __jo = JObject.Parse(deserialize_object.ToString());
@@ -2049,7 +2049,7 @@ namespace YB_Cronos_Data
                         var header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},{19},{20}", "Brand", "Month", "Date", "Time", "Submitted Date", "Updated Date", "Member", "Payment Type", "Transaction ID", "Amount", "Transaction Time", "Transaction Type", "Duration Time", "VIP", "Status", "PG Company", "PG Type", "Retained", "FD Date", "New", "Reactivated");
                         _DATA.AppendLine(header);
                     }
-                    var data = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},{19},{20}", "YB", "\"" + _month + "\"", "\"" + _date + "\"", "\"" + _time + "\"", "\"" + _submitted_date + "\"", "\"" + _updated_date + "\"", "\"" + _member + "\"", "\"" + _payment_type + "\"", "\"" + _transaction_id + "\"", "\"" + _amount + "\"", "\"" + _transaction_time + "\"", "\"" + "Deposit" + "\"", "\"" + _duration_time + "\"", "\"" + _vip + "\"", "\"" + _status + "\"", "\"" + _pg_company + "\"", "\"" + _pg_type + "\"", "\"" + _retained + "\"", "\"" + _fd_date + "\"", "\"" + _new + "\"", "\"" + _reactivated + "\"");
+                    var data = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},{19},{20}", __brand_code, "\"" + _month + "\"", "\"" + _date + "\"", "\"" + _time + "\"", "\"" + _submitted_date + "\"", "\"" + _updated_date + "\"", "\"" + _member + "\"", "\"" + _payment_type + "\"", "\"" + _transaction_id + "\"", "\"" + _amount + "\"", "\"" + _transaction_time + "\"", "\"" + "Deposit" + "\"", "\"" + _duration_time + "\"", "\"" + _vip + "\"", "\"" + _status + "\"", "\"" + _pg_company + "\"", "\"" + _pg_type + "\"", "\"" + _retained + "\"", "\"" + _fd_date + "\"", "\"" + _new + "\"", "\"" + _reactivated + "\"");
                     _DATA.AppendLine(data);
                 }
 
@@ -2067,23 +2067,23 @@ namespace YB_Cronos_Data
                         Directory.CreateDirectory(__file_location + "\\Cronos Data");
                     }
 
-                    if (!Directory.Exists(__file_location + "\\Cronos Data\\YB"))
+                    if (!Directory.Exists(__file_location + "\\Cronos Data\\" + __brand_code))
                     {
-                        Directory.CreateDirectory(__file_location + "\\Cronos Data\\YB");
+                        Directory.CreateDirectory(__file_location + "\\Cronos Data\\" + __brand_code);
                     }
 
-                    if (!Directory.Exists(__file_location + "\\Cronos Data\\YB\\" + _current_datetime))
+                    if (!Directory.Exists(__file_location + "\\Cronos Data\\" + __brand_code + "\\" + _current_datetime))
                     {
-                        Directory.CreateDirectory(__file_location + "\\Cronos Data\\YB\\" + _current_datetime);
+                        Directory.CreateDirectory(__file_location + "\\Cronos Data\\" + __brand_code + "\\" + _current_datetime);
                     }
 
-                    if (!Directory.Exists(__file_location + "\\Cronos Data\\YB\\" + _current_datetime + "\\Payment Report"))
+                    if (!Directory.Exists(__file_location + "\\Cronos Data\\" + __brand_code + "\\" + _current_datetime + "\\Payment Report"))
                     {
-                        Directory.CreateDirectory(__file_location + "\\Cronos Data\\YB\\" + _current_datetime + "\\Payment Report");
+                        Directory.CreateDirectory(__file_location + "\\Cronos Data\\" + __brand_code + "\\" + _current_datetime + "\\Payment Report");
                     }
 
-                    string _folder_path_result = __file_location + "\\Cronos Data\\YB\\" + _current_datetime + "\\Payment Report\\YB_PaymentReport_" + _current_datetime + "_1.txt";
-                    string _folder_path_result_xlsx = __file_location + "\\Cronos Data\\YB\\" + _current_datetime + "\\Payment Report\\YB_PaymentReport_" + _current_datetime + "_1.xlsx";
+                    string _folder_path_result = __file_location + "\\Cronos Data\\" + __brand_code + "\\" + _current_datetime + "\\Payment Report\\" + __brand_code + "_PaymentReport_" + _current_datetime + "_1.txt";
+                    string _folder_path_result_xlsx = __file_location + "\\Cronos Data\\" + __brand_code + "\\" + _current_datetime + "\\Payment Report\\" + __brand_code + "_PaymentReport_" + _current_datetime + "_1.xlsx";
 
                     if (File.Exists(_folder_path_result))
                     {
@@ -2150,7 +2150,7 @@ namespace YB_Cronos_Data
                 end = end.Replace(":", "%3A");
 
                 label_page_count.Text = "-";
-                byte[] result = await wc.DownloadDataTaskAsync("http://103.4.104.8/manager/payment/searchWithdrawal?transactionId=&userId=&vipLevel=-1&status=9999&createDateStart=" + start + "&createDateEnd=" + end + "&verifyDateStart=&verifyDateEnd=&approvedDateStart=&approvedDateEnd=&pageNumber=1&pageSize=" + __display_length + "&sortCondition=4&sortName=createTime&sortOrder=1&searchText=");
+                byte[] result = await wc.DownloadDataTaskAsync(__root_url + "/manager/payment/searchWithdrawal?transactionId=&userId=&vipLevel=-1&status=9999&createDateStart=" + start + "&createDateEnd=" + end + "&verifyDateStart=&verifyDateEnd=&approvedDateStart=&approvedDateEnd=&pageNumber=1&pageSize=" + __display_length + "&sortCondition=4&sortName=createTime&sortOrder=1&searchText=");
                 string responsebody = Encoding.UTF8.GetString(result);
                 var deserialize_object = JsonConvert.DeserializeObject(responsebody);
                 __jo = JObject.Parse(deserialize_object.ToString());
@@ -2387,7 +2387,7 @@ namespace YB_Cronos_Data
                     
                     if (__detect_header)
                     {
-                        var data = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},{19},{20}", "YB", "\"" + _month + "\"", "\"" + _date + "\"", "\"" + _time + "\"", "\"" + _submitted_date + "\"", "\"" + _updated_date + "\"", "\"" + _member + "\"", "\"" + "" + "\"", "\"" + _transaction_id + "\"", "\"" + _amount + "\"", "\"" + _transaction_time + "\"", "\"" + "Withdrawal" + "\"", "\"" + _duration_time + "\"", "\"" + _vip + "\"", "\"" + _status + "\"", "\"" + "LOCAL BANK" + "\"", "\"" + "LOCAL BANK" + "\"", "\"" + _retained + "\"", "\"" + _fd_date + "\"", "\"" + _new + "\"", "\"" + _reactivated + "\"");
+                        var data = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},{19},{20}", __brand_code, "\"" + _month + "\"", "\"" + _date + "\"", "\"" + _time + "\"", "\"" + _submitted_date + "\"", "\"" + _updated_date + "\"", "\"" + _member + "\"", "\"" + "" + "\"", "\"" + _transaction_id + "\"", "\"" + _amount + "\"", "\"" + _transaction_time + "\"", "\"" + "Withdrawal" + "\"", "\"" + _duration_time + "\"", "\"" + _vip + "\"", "\"" + _status + "\"", "\"" + "LOCAL BANK" + "\"", "\"" + "LOCAL BANK" + "\"", "\"" + _retained + "\"", "\"" + _fd_date + "\"", "\"" + _new + "\"", "\"" + _reactivated + "\"");
                         _DATA.AppendLine(data);
                     }
                     else
@@ -2397,7 +2397,7 @@ namespace YB_Cronos_Data
                             var header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},{19},{20}", "Brand", "Month", "Date", "Time", "Submitted Date", "Updated Date", "Member", "Payment Type", "Transaction ID", "Amount", "Transaction Time", "Transaction Type", "Duration Time", "VIP", "Status", "PG Company", "PG Type", "Retained", "FD Date", "New", "Reactivated");
                             _DATA.AppendLine(header);
                         }
-                        var data = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},{19},{20}", "YB", "\"" + _month + "\"", "\"" + _date + "\"", "\"" + _time + "\"", "\"" + _submitted_date + "\"", "\"" + _updated_date + "\"", "\"" + _member + "\"", "\"" + "" + "\"", "\"" + _transaction_id + "\"", "\"" + _amount + "\"", "\"" + _transaction_time + "\"", "\"" + "Deposit" + "\"", "\"" + _duration_time + "\"", "\"" + _vip + "\"", "\"" + _status + "\"", "\"" + "LOCAL BANK" + "\"", "\"" + "LOCAL BANK" + "\"", "\"" + _retained + "\"", "\"" + _fd_date + "\"", "\"" + _new + "\"", "\"" + _reactivated + "\"");
+                        var data = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},{19},{20}", __brand_code, "\"" + _month + "\"", "\"" + _date + "\"", "\"" + _time + "\"", "\"" + _submitted_date + "\"", "\"" + _updated_date + "\"", "\"" + _member + "\"", "\"" + "" + "\"", "\"" + _transaction_id + "\"", "\"" + _amount + "\"", "\"" + _transaction_time + "\"", "\"" + "Deposit" + "\"", "\"" + _duration_time + "\"", "\"" + _vip + "\"", "\"" + _status + "\"", "\"" + "LOCAL BANK" + "\"", "\"" + "LOCAL BANK" + "\"", "\"" + _retained + "\"", "\"" + _fd_date + "\"", "\"" + _new + "\"", "\"" + _reactivated + "\"");
                         _DATA.AppendLine(data);
                     }
                 }
@@ -2415,23 +2415,23 @@ namespace YB_Cronos_Data
                         Directory.CreateDirectory(__file_location + "\\Cronos Data");
                     }
 
-                    if (!Directory.Exists(__file_location + "\\Cronos Data\\YB"))
+                    if (!Directory.Exists(__file_location + "\\Cronos Data\\" + __brand_code))
                     {
-                        Directory.CreateDirectory(__file_location + "\\Cronos Data\\YB");
+                        Directory.CreateDirectory(__file_location + "\\Cronos Data\\" + __brand_code);
                     }
 
-                    if (!Directory.Exists(__file_location + "\\Cronos Data\\YB\\" + _current_datetime))
+                    if (!Directory.Exists(__file_location + "\\Cronos Data\\" + __brand_code + "\\" + _current_datetime))
                     {
-                        Directory.CreateDirectory(__file_location + "\\Cronos Data\\YB\\" + _current_datetime);
+                        Directory.CreateDirectory(__file_location + "\\Cronos Data\\" + __brand_code + "\\" + _current_datetime);
                     }
 
-                    if (!Directory.Exists(__file_location + "\\Cronos Data\\YB\\" + _current_datetime + "\\Payment Report"))
+                    if (!Directory.Exists(__file_location + "\\Cronos Data\\" + __brand_code + "\\" + _current_datetime + "\\Payment Report"))
                     {
-                        Directory.CreateDirectory(__file_location + "\\Cronos Data\\YB\\" + _current_datetime + "\\Payment Report");
+                        Directory.CreateDirectory(__file_location + "\\Cronos Data\\" + __brand_code + "\\" + _current_datetime + "\\Payment Report");
                     }
 
-                    string _folder_path_result = __file_location + "\\Cronos Data\\YB\\" + _current_datetime + "\\Payment Report\\YB_PaymentReport_" + _current_datetime + "_1.txt";
-                    string _folder_path_result_xlsx = __file_location + "\\Cronos Data\\YB\\" + _current_datetime + "\\Payment Report\\YB_PaymentReport_" + _current_datetime + "_1.xlsx";
+                    string _folder_path_result = __file_location + "\\Cronos Data\\" + __brand_code + "\\" + _current_datetime + "\\Payment Report\\" + __brand_code + "_PaymentReport_" + _current_datetime + "_1.txt";
+                    string _folder_path_result_xlsx = __file_location + "\\Cronos Data\\" + __brand_code + "\\" + _current_datetime + "\\Payment Report\\" + __brand_code + "_PaymentReport_" + _current_datetime + "_1.xlsx";
 
                     _DATA.ToString().Reverse();
 
@@ -2569,7 +2569,7 @@ namespace YB_Cronos_Data
                 end = end.Replace(":", "%3A");
                 
                 label_page_count.Text = "-";
-                byte[] result = await wc.DownloadDataTaskAsync("http://103.4.104.8/manager/payment/searchAdjustment?transactionId=&userId=&vipLevel=-1&createDateStart=" + start + "&createDateEnd=" + end + "&creator=&pageNumber=1&pageSize=" + __display_length + "&sortCondition=4&sortName=createTime&sortOrder=1&searchText=");
+                byte[] result = await wc.DownloadDataTaskAsync(__root_url + "/manager/payment/searchAdjustment?transactionId=&userId=&vipLevel=-1&createDateStart=" + start + "&createDateEnd=" + end + "&creator=&pageNumber=1&pageSize=" + __display_length + "&sortCondition=4&sortName=createTime&sortOrder=1&searchText=");
                 string responsebody = Encoding.UTF8.GetString(result);
                 var deserialize_object = JsonConvert.DeserializeObject(responsebody);
                 __jo = JObject.Parse(deserialize_object.ToString());
@@ -2738,7 +2738,7 @@ namespace YB_Cronos_Data
 
                         if (__detect_header)
                         {
-                            var data = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12}", "YB", "\"" + _month + "\"", "\"" + _date + "\"", "\"" + _transaction_time + "\"", "\"" + _transaction_id + "\"", "\"" + _username + "\"", "\"" + _bonus_code + "\"", "\"" + _bonus_category + "\"", "\"" + _purpose + "\"", "\"" + _amount + "\"", "\"" + _vip + "\"", "\"" + "" + "\"", "\"" + "" + "\"");
+                            var data = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12}", __brand_code, "\"" + _month + "\"", "\"" + _date + "\"", "\"" + _transaction_time + "\"", "\"" + _transaction_id + "\"", "\"" + _username + "\"", "\"" + _bonus_code + "\"", "\"" + _bonus_category + "\"", "\"" + _purpose + "\"", "\"" + _amount + "\"", "\"" + _vip + "\"", "\"" + "" + "\"", "\"" + "" + "\"");
                             _DATA.AppendLine(data);
                         }
                         else
@@ -2748,7 +2748,7 @@ namespace YB_Cronos_Data
                                 var header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12}", "Brand", "Month", "Date", "Transaction Time", "Transaction ID", "Username", "Bonus Code", "Bonus Category", "Purpose", "Amount", "VIP", "Updated by", "Product");
                                 _DATA.AppendLine(header);
                             }
-                            var data = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12}", "YB", "\"" + _month + "\"", "\"" + _date + "\"", "\"" + _transaction_time + "\"", "\"" + _transaction_id + "\"", "\"" + _username + "\"", "\"" + _bonus_code + "\"", "\"" + _bonus_category + "\"", "\"" + _purpose + "\"", "\"" + _amount + "\"", "\"" + _vip + "\"", "\"" + "" + "\"", "\"" + "" + "\"");
+                            var data = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12}", __brand_code, "\"" + _month + "\"", "\"" + _date + "\"", "\"" + _transaction_time + "\"", "\"" + _transaction_id + "\"", "\"" + _username + "\"", "\"" + _bonus_code + "\"", "\"" + _bonus_category + "\"", "\"" + _purpose + "\"", "\"" + _amount + "\"", "\"" + _vip + "\"", "\"" + "" + "\"", "\"" + "" + "\"");
                             _DATA.AppendLine(data);
                         }
                     }
@@ -2776,23 +2776,23 @@ namespace YB_Cronos_Data
                         Directory.CreateDirectory(__file_location + "\\Cronos Data");
                     }
 
-                    if (!Directory.Exists(__file_location + "\\Cronos Data\\YB"))
+                    if (!Directory.Exists(__file_location + "\\Cronos Data\\" + __brand_code))
                     {
-                        Directory.CreateDirectory(__file_location + "\\Cronos Data\\YB");
+                        Directory.CreateDirectory(__file_location + "\\Cronos Data\\" + __brand_code);
                     }
 
-                    if (!Directory.Exists(__file_location + "\\Cronos Data\\YB\\" + _current_datetime))
+                    if (!Directory.Exists(__file_location + "\\Cronos Data\\" + __brand_code + "\\" + _current_datetime))
                     {
-                        Directory.CreateDirectory(__file_location + "\\Cronos Data\\YB\\" + _current_datetime);
+                        Directory.CreateDirectory(__file_location + "\\Cronos Data\\" + __brand_code + "\\" + _current_datetime);
                     }
 
-                    if (!Directory.Exists(__file_location + "\\Cronos Data\\YB\\" + _current_datetime + "\\Bonus Report"))
+                    if (!Directory.Exists(__file_location + "\\Cronos Data\\" + __brand_code + "\\" + _current_datetime + "\\Bonus Report"))
                     {
-                        Directory.CreateDirectory(__file_location + "\\Cronos Data\\YB\\" + _current_datetime + "\\Bonus Report");
+                        Directory.CreateDirectory(__file_location + "\\Cronos Data\\" + __brand_code + "\\" + _current_datetime + "\\Bonus Report");
                     }
 
-                    string _folder_path_result = __file_location + "\\Cronos Data\\YB\\" + _current_datetime + "\\Bonus Report\\YB_BonusReport_" + _current_datetime + "_1.txt";
-                    string _folder_path_result_xlsx = __file_location + "\\Cronos Data\\YB\\" + _current_datetime + "\\Bonus Report\\YB_BonusReport_" + _current_datetime + "_1.xlsx";
+                    string _folder_path_result = __file_location + "\\Cronos Data\\" + __brand_code + "\\" + _current_datetime + "\\Bonus Report\\" + __brand_code + "_BonusReport_" + _current_datetime + "_1.txt";
+                    string _folder_path_result_xlsx = __file_location + "\\Cronos Data\\" + __brand_code + "\\" + _current_datetime + "\\Bonus Report\\" + __brand_code + "_BonusReport_" + _current_datetime + "_1.xlsx";
 
                     _DATA.ToString().Reverse();
 
@@ -2903,8 +2903,8 @@ namespace YB_Cronos_Data
                 using (SqlConnection conn = new SqlConnection(connection))
                 {
                     conn.Open();
-                    SqlCommand command = new SqlCommand("SELECT * FROM [testrain].[dbo].[YB.Affiliate List]", conn);
-                    SqlCommand command_count = new SqlCommand("SELECT COUNT(*) FROM [testrain].[dbo].[YB.Affiliate List]", conn);
+                    SqlCommand command = new SqlCommand("SELECT * FROM [testrain].[dbo].[" + __brand_code + ".Affiliate List]", conn);
+                    SqlCommand command_count = new SqlCommand("SELECT COUNT(*) FROM [testrain].[dbo].[" + __brand_code + ".Affiliate List]", conn);
                     string columns = "";
 
                     Int32 getcount = (Int32)command_count.ExecuteScalar();
@@ -2958,8 +2958,8 @@ namespace YB_Cronos_Data
                 using (SqlConnection conn = new SqlConnection(connection))
                 {
                     conn.Open();
-                    SqlCommand command = new SqlCommand("SELECT * FROM [testrain].[dbo].[YB.Bonus Code]", conn);
-                    SqlCommand command_count = new SqlCommand("SELECT COUNT(*) FROM [testrain].[dbo].[YB.Bonus Code]", conn);
+                    SqlCommand command = new SqlCommand("SELECT * FROM [testrain].[dbo].[" + __brand_code + ".Bonus Code]", conn);
+                    SqlCommand command_count = new SqlCommand("SELECT COUNT(*) FROM [testrain].[dbo].[" + __brand_code + ".Bonus Code]", conn);
                     string columns = "";
 
                     Int32 getcount = (Int32)command_count.ExecuteScalar();
