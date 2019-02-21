@@ -1924,7 +1924,7 @@ namespace YB_Cronos_Data
                     if (_updated_date.ToString() != "")
                     {
                         DateTime _updated_date_replace = new DateTime(1970, 1, 1, 0, 0, 0, 0).AddSeconds(Math.Round(Convert.ToDouble(_updated_date.ToString()) / 1000d)).ToLocalTime();
-                        _updated_date = _updated_date_replace.ToString("yyyy-MM-dd");
+                        _updated_date = _updated_date_replace.ToString("yyyy-MM-dd HH:mm:ss");
                         _time = _updated_date_replace.ToString("yyyy-MM-dd HH:mm:ss");
                     }
                     else
@@ -2059,7 +2059,10 @@ namespace YB_Cronos_Data
                     {
                         _fd_date = "";
                     }
-                    
+
+                    DateTime _updated_date_replace_ = DateTime.ParseExact(_updated_date.ToString(), "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
+                    _updated_date = _updated_date_replace_.ToString("yyyy-MM-dd");
+
                     if (_display_count == 1)
                     {
                         var header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},{19},{20}", "Brand", "Month", "Date", "Time", "Submitted Date", "Updated Date", "Member", "Payment Type", "Transaction ID", "Amount", "Transaction Time", "Transaction Type", "Duration Time", "VIP", "Status", "PG Company", "PG Type", "Retained", "FD Date", "New", "Reactivated");
@@ -2234,7 +2237,7 @@ namespace YB_Cronos_Data
                     if (_updated_date.ToString() != "")
                     {
                         DateTime _updated_date_replace = new DateTime(1970, 1, 1, 0, 0, 0, 0).AddSeconds(Math.Round(Convert.ToDouble(_updated_date.ToString()) / 1000d)).ToLocalTime();
-                        _updated_date = _updated_date_replace.ToString("yyyy-MM-dd");
+                        _updated_date = _updated_date_replace.ToString("yyyy-MM-dd HH:mm:ss");
                         _time = _updated_date_replace.ToString("yyyy-MM-dd HH:mm:ss");
                     }
                     else
@@ -2339,7 +2342,10 @@ namespace YB_Cronos_Data
                     string _new = "";
                     string _reactivated = "";
                     string _fd_date = "";
-                    
+
+                    DateTime _updated_date_replace_ = DateTime.ParseExact(_updated_date.ToString(), "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
+                    _updated_date = _updated_date_replace_.ToString("yyyy-MM-dd");
+
                     if (__detect_header)
                     {
                         var data = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},{19},{20}", __brand_code, "\"" + _month + "\"", "\"" + _date + "\"", "\"" + _time + "\"", "\"" + _submitted_date + "\"", "\"" + _updated_date + "\"", "\"" + _member + "\"", "\"" + "" + "\"", "\"" + _transaction_id + "\"", "\"" + _amount + "\"", "\"" + _transaction_time + "\"", "\"" + "Withdrawal" + "\"", "\"" + _duration_time + "\"", "\"" + _vip + "\"", "\"" + _status + "\"", "\"" + "LOCAL BANK" + "\"", "\"" + "LOCAL BANK" + "\"", "\"" + _retained + "\"", "\"" + _fd_date + "\"", "\"" + _new + "\"", "\"" + _reactivated + "\"");
