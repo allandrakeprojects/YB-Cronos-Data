@@ -245,7 +245,8 @@ namespace YB_Cronos_Data
                         panel_loader.Visible = false;
                         __mainform_handler = Application.OpenForms[0];
                         __mainform_handler.Size = new Size(569, 514);
-                        label_navigate_up.Enabled = true;
+                        panel_loader.Visible = false;
+                        label_navigate_up.Enabled = false;
                         
                         //SendITSupport("The application have been logout, please re-login again.");
                         SendMyBot("The application have been logout, please re-login again.");
@@ -331,6 +332,10 @@ namespace YB_Cronos_Data
                             comboBox_list.SelectedIndex = 3;
                             button_start.PerformClick();
                         }
+                    }
+                    else
+                    {
+                        label_status.Text = "Waiting";
                     }
                 }));
             }
@@ -1607,10 +1612,52 @@ namespace YB_Cronos_Data
             }
         }
 
-        private void ___BET()
+        private async Task ___BETAsync()
         {
-            // /manager/ReportController/searchBetReport
             // /manager/ReportController/downloadBetReport?fileName=bet_20190219_030117&realName=bet_20190219_030117_41
+            var cookie_manager = Cef.GetGlobalCookieManager();
+            var visitor = new CookieCollector();
+            cookie_manager.VisitUrlCookies(__url, true, visitor);
+            var cookies = await visitor.Task;
+            var cookie = CookieCollector.GetCookieHeader(cookies);
+            WebClient wc = new WebClient();
+            wc.Headers.Add("Cookie", cookie);
+            wc.Encoding = Encoding.UTF8;
+            wc.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
+            
+            byte[] result = await wc.DownloadDataTaskAsync("http://103.4.104.8/manager/ReportController/searchBetReport");
+            string responsebody = Encoding.UTF8.GetString(result);
+            var deserialize_object = JsonConvert.DeserializeObject(responsebody);
+            JObject _jo = JObject.Parse(deserialize_object.ToString());
+            JToken _jo_count = _jo.SelectToken("$.bets");
+
+            for (int i = 0; i < _jo_count.Count(); i++)
+            {
+                Application.DoEvents();
+
+                // -----
+                JToken _id = _jo.SelectToken("$.bets[" + i + "].id").ToString();
+                string yesterday_date = DateTime.Now.AddDays(-1).ToString("yyyy-MM-dd");
+                // -----
+                JToken _date = _jo.SelectToken("$.bets[" + i + "].date").ToString().Replace("/", "-");
+                if (yesterday_date == _date.ToString())
+                {
+                    // -----
+                    JToken _create_time = _jo.SelectToken("$.bets[" + i + "].createTime").ToString();
+                    // -----
+                    JToken _name = _jo.SelectToken("$.bets[" + i + "].name").ToString();
+
+                    MessageBox.Show(_create_time + " --- " + _id + " --- " + _name);
+
+                    //break;
+                }
+
+                MessageBox.Show(_id.ToString());
+            }
+
+            //label_page_count.Text = "1 of 1";
+            //label_total_records.Text = "0 of " + __jo_count.Count().ToString("N0");
+            //label_yb_status.Text = "status: getting data... --- DEPOSIT RECORD";
         }
 
         private async Task<string> ___REGISTRATION_FIRSTDEPOSITAsync(string username)
@@ -2778,7 +2825,6 @@ namespace YB_Cronos_Data
                 label_page_count.Text = "-";
                 label_total_records.Text = "-";
                 button_start.Visible = true;
-                button_start.Enabled = false;
                 __detect_header = false;
                 if (__is_autostart)
                 {
@@ -3184,6 +3230,14 @@ namespace YB_Cronos_Data
             catch (Exception err)
             {
                 // leave blank
+            }
+        }
+
+        private async void button2_Click_1Async(object sender, EventArgs e)
+        {
+            if (__is_login)
+            {
+                await ___BETAsync();
             }
         }
     }
