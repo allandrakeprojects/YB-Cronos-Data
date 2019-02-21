@@ -550,7 +550,6 @@ namespace YB_Cronos_Data
         {
             __is_start = true;
             panel_filter.Enabled = false;
-            label_status.Text = "Waiting";
 
             string start_datetime = dateTimePicker_start.Text;
             DateTime start = DateTime.Parse(start_datetime);
