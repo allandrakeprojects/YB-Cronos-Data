@@ -31,7 +31,6 @@
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Main_Form));
             this.panel_header = new System.Windows.Forms.Panel();
-            this.button2 = new System.Windows.Forms.Button();
             this.panel = new System.Windows.Forms.Panel();
             this.label_title = new System.Windows.Forms.Label();
             this.pictureBox_minimize = new System.Windows.Forms.PictureBox();
@@ -90,6 +89,7 @@
             this.label_brand = new System.Windows.Forms.Label();
             this.pictureBox_loader_loader = new System.Windows.Forms.PictureBox();
             this.timer_flush_memory = new System.Windows.Forms.Timer(this.components);
+            this.timer_bet_record = new System.Windows.Forms.Timer(this.components);
             this.panel_header.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox_minimize)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox_close)).BeginInit();
@@ -109,7 +109,6 @@
             // panel_header
             // 
             this.panel_header.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(78)))), ((int)(((byte)(122)))), ((int)(((byte)(159)))));
-            this.panel_header.Controls.Add(this.button2);
             this.panel_header.Controls.Add(this.panel);
             this.panel_header.Controls.Add(this.label_title);
             this.panel_header.Controls.Add(this.pictureBox_minimize);
@@ -120,17 +119,6 @@
             this.panel_header.Size = new System.Drawing.Size(569, 45);
             this.panel_header.TabIndex = 0;
             this.panel_header.MouseDown += new System.Windows.Forms.MouseEventHandler(this.panel_header_MouseDown);
-            // 
-            // button2
-            // 
-            this.button2.Location = new System.Drawing.Point(316, 0);
-            this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(75, 23);
-            this.button2.TabIndex = 37;
-            this.button2.Text = "button2";
-            this.button2.UseVisualStyleBackColor = true;
-            this.button2.Visible = false;
-            this.button2.Click += new System.EventHandler(this.button2_Click_1Async);
             // 
             // panel
             // 
@@ -769,6 +757,11 @@
             this.timer_flush_memory.Interval = 2000;
             this.timer_flush_memory.Tick += new System.EventHandler(this.timer_flush_memory_Tick);
             // 
+            // timer_bet_record
+            // 
+            this.timer_bet_record.Interval = 10000;
+            this.timer_bet_record.Tick += new System.EventHandler(this.timer_bet_record_TickAsync);
+            // 
             // Main_Form
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -876,6 +869,6 @@
         private System.Windows.Forms.Label label_brand;
         private System.Windows.Forms.PictureBox pictureBox_loader_loader;
         private System.Windows.Forms.Timer timer_flush_memory;
-        private System.Windows.Forms.Button button2;
+        private System.Windows.Forms.Timer timer_bet_record;
     }
 }

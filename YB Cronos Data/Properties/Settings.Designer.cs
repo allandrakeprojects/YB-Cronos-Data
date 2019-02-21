@@ -49,7 +49,7 @@ namespace YB_Cronos_Data.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("192.168.10.252")]
+        [global::System.Configuration.DefaultSettingValueAttribute("192.168.10.38")]
         public string ______server_ip {
             get {
                 return ((string)(this["______server_ip"]));
@@ -68,6 +68,18 @@ namespace YB_Cronos_Data.Properties {
             }
             set {
                 this["______server_location"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public int ______bet_record {
+            get {
+                return ((int)(this["______bet_record"]));
+            }
+            set {
+                this["______bet_record"] = value;
             }
         }
     }

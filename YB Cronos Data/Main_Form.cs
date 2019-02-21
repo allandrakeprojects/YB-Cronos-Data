@@ -1614,50 +1614,91 @@ namespace YB_Cronos_Data
 
         private async Task ___BETAsync()
         {
-            // /manager/ReportController/downloadBetReport?fileName=bet_20190219_030117&realName=bet_20190219_030117_41
-            var cookie_manager = Cef.GetGlobalCookieManager();
-            var visitor = new CookieCollector();
-            cookie_manager.VisitUrlCookies(__url, true, visitor);
-            var cookies = await visitor.Task;
-            var cookie = CookieCollector.GetCookieHeader(cookies);
-            WebClient wc = new WebClient();
-            wc.Headers.Add("Cookie", cookie);
-            wc.Encoding = Encoding.UTF8;
-            wc.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
-            
-            byte[] result = await wc.DownloadDataTaskAsync("http://103.4.104.8/manager/ReportController/searchBetReport");
-            string responsebody = Encoding.UTF8.GetString(result);
-            var deserialize_object = JsonConvert.DeserializeObject(responsebody);
-            JObject _jo = JObject.Parse(deserialize_object.ToString());
-            JToken _jo_count = _jo.SelectToken("$.bets");
-
-            for (int i = 0; i < _jo_count.Count(); i++)
+            try
             {
-                Application.DoEvents();
+                var cookie_manager = Cef.GetGlobalCookieManager();
+                var visitor = new CookieCollector();
+                cookie_manager.VisitUrlCookies(__url, true, visitor);
+                var cookies = await visitor.Task;
+                var cookie = CookieCollector.GetCookieHeader(cookies);
+                WebClient wc = new WebClient();
+                wc.Headers.Add("Cookie", cookie);
+                wc.Encoding = Encoding.UTF8;
+                wc.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
 
-                // -----
-                JToken _id = _jo.SelectToken("$.bets[" + i + "].id").ToString();
-                string yesterday_date = DateTime.Now.AddDays(-1).ToString("yyyy-MM-dd");
-                // -----
-                JToken _date = _jo.SelectToken("$.bets[" + i + "].date").ToString().Replace("/", "-");
-                if (yesterday_date == _date.ToString())
+                byte[] result = await wc.DownloadDataTaskAsync("http://103.4.104.8/manager/ReportController/searchBetReport");
+                string responsebody = Encoding.UTF8.GetString(result);
+                var deserialize_object = JsonConvert.DeserializeObject(responsebody);
+                JObject _jo = JObject.Parse(deserialize_object.ToString());
+                JToken _jo_count = _jo.SelectToken("$.bets");
+
+                for (int i = 0; i < _jo_count.Count(); i++)
                 {
-                    // -----
-                    JToken _create_time = _jo.SelectToken("$.bets[" + i + "].createTime").ToString();
-                    // -----
-                    JToken _name = _jo.SelectToken("$.bets[" + i + "].name").ToString();
+                    Application.DoEvents();
 
-                    MessageBox.Show(_create_time + " --- " + _id + " --- " + _name);
+                    string yesterday_date = DateTime.Now.AddDays(-1).ToString("yyyy-MM-dd");
+                    // -----
+                    JToken _date = _jo.SelectToken("$.bets[" + i + "].date").ToString().Replace("/", "-");
+                    if (yesterday_date == _date.ToString())
+                    {
+                        // -----
+                        JToken _name = _jo.SelectToken("$.bets[" + i + "].name").ToString();
+                        string _file_name = _name.ToString().Remove(18, 3);
 
-                    //break;
+                        string _current_datetime = DateTime.Now.ToString("yyyy-MM-dd");
+                        if (!Directory.Exists(__file_location + "\\Cronos Data"))
+                        {
+                            Directory.CreateDirectory(__file_location + "\\Cronos Data");
+                        }
+
+                        if (!Directory.Exists(__file_location + "\\Cronos Data\\YB"))
+                        {
+                            Directory.CreateDirectory(__file_location + "\\Cronos Data\\YB");
+                        }
+
+                        if (!Directory.Exists(__file_location + "\\Cronos Data\\YB\\" + _current_datetime))
+                        {
+                            Directory.CreateDirectory(__file_location + "\\Cronos Data\\YB\\" + _current_datetime);
+                        }
+
+                        if (!Directory.Exists(__file_location + "\\Cronos Data\\YB\\" + _current_datetime + "\\Bet Record"))
+                        {
+                            Directory.CreateDirectory(__file_location + "\\Cronos Data\\YB\\" + _current_datetime + "\\Bet Record");
+                        }
+                        
+                        string _folder_path_result_xlsx = __file_location + "\\Cronos Data\\YB\\" + _current_datetime + "\\Bet Record\\" + _file_name + ".xlsx";
+
+                        if (File.Exists(_folder_path_result_xlsx))
+                        {
+                            File.Delete(_folder_path_result_xlsx);
+                        }
+
+                        await wc.DownloadFileTaskAsync(
+                            new Uri("http://103.4.104.8/manager/ReportController/downloadBetReport?fileName=" + _file_name + "&realName=" + _name),
+                            _folder_path_result_xlsx
+                        );
+                        
+                        SendReportsTeam("Bet Record Downloaded.");
+
+                        break;
+                    }
                 }
-
-                MessageBox.Show(_id.ToString());
             }
+            catch (Exception err)
+            {
+                __send++;
+                if (__send == 5)
+                {
+                    SendReportsTeam("Can't download Bet Record at this moment.");
+                    SendMyBot(err.ToString());
 
-            //label_page_count.Text = "1 of 1";
-            //label_total_records.Text = "0 of " + __jo_count.Count().ToString("N0");
-            //label_yb_status.Text = "status: getting data... --- DEPOSIT RECORD";
+                    Environment.Exit(0);
+                }
+                else
+                {
+                    await ___BETAsync();
+                }
+            }
         }
 
         private async Task<string> ___REGISTRATION_FIRSTDEPOSITAsync(string username)
@@ -2971,49 +3012,133 @@ namespace YB_Cronos_Data
             }
         }
 
+        private void timer_midnight_Tick(object sender, EventArgs e)
+        {
+            if (Properties.Settings.Default.______midnight_time == "")
+            {
+                DateTime today = DateTime.Now;
+                DateTime date = today.AddDays(1);
+                Properties.Settings.Default.______midnight_time = date.ToString("yyyy-MM-dd 00:30");
+                Properties.Settings.Default.Save();
+            }
+            else
+            {
+                DateTime today = DateTime.Now;
+                if (Properties.Settings.Default.______midnight_time == today.ToString("yyyy-MM-dd HH:mm"))
+                {
+                    if (Properties.Settings.Default.______start_detect == "0")
+                    {
+                        Properties.Settings.Default.______bet_record = 0;
+                        Properties.Settings.Default.Save();
+                        timer_bet_record.Start();
 
+                        Properties.Settings.Default.______midnight_time = "";
+                        Properties.Settings.Default.Save();
 
+                        ___GETDATA_AFFILIATELIST();
+                        ___GETDATA_BONUSCODE();
+                        Properties.Settings.Default.______start_detect = "1";
+                        Properties.Settings.Default.Save();
+                        comboBox_list.SelectedIndex = 1;
+                        comboBox_list.SelectedIndex = 0;
+                        button_start.Enabled = true;
+                        button_start.PerformClick();
+                    }
+                }
+                else
+                {
+                    string start_datetime = today.ToString("yyyy-MM-dd HH:mm");
+                    DateTime start = DateTime.ParseExact(start_datetime, "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
 
+                    string end_datetime = Properties.Settings.Default.______midnight_time;
+                    DateTime end = DateTime.ParseExact(end_datetime, "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
 
+                    if (start > end)
+                    {
+                        if (Properties.Settings.Default.______start_detect == "0")
+                        {
+                            Properties.Settings.Default.______bet_record = 0;
+                            Properties.Settings.Default.Save();
+                            timer_bet_record.Start();
 
+                            Properties.Settings.Default.______midnight_time = "";
+                            Properties.Settings.Default.Save();
 
+                            ___GETDATA_AFFILIATELIST();
+                            ___GETDATA_BONUSCODE();
+                            Properties.Settings.Default.______start_detect = "1";
+                            Properties.Settings.Default.Save();
+                            comboBox_list.SelectedIndex = 1;
+                            comboBox_list.SelectedIndex = 0;
+                            button_start.Enabled = true;
+                            button_start.PerformClick();
+                        }
+                    }
+                }
+            }
+        }
 
+        private void label_navigate_up_Click(object sender, EventArgs e)
+        {
+            __mainform_handler = Application.OpenForms[0];
+            __mainform_handler.Size = new Size(569, 208);
+            panel_loader.Visible = true;
+            label_navigate_up.Enabled = false;
+        }
 
+        private void label_navigate_down_Click(object sender, EventArgs e)
+        {
+            __mainform_handler = Application.OpenForms[0];
+            __mainform_handler.Size = new Size(569, 514);
+            panel_loader.Visible = false;
+            label_navigate_up.Enabled = true;
+        }
 
+        private void timer_flush_memory_Tick(object sender, EventArgs e)
+        {
+            ___FlushMemory();
+        }
 
+        public static void ___FlushMemory()
+        {
+            Process prs = Process.GetCurrentProcess();
+            try
+            {
+                prs.MinWorkingSet = (IntPtr)(300000);
+            }
+            catch (Exception err)
+            {
+                // leave blank
+            }
+        }
 
+        private async void timer_bet_record_TickAsync(object sender, EventArgs e)
+        {
+            timer_bet_record.Stop();
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+            if (Properties.Settings.Default.______bet_record == 0)
+            {
+                string cur_date = DateTime.Now.ToString("HH");
+                if (cur_date == "04")
+                {
+                    if (__is_login)
+                    {
+                        Properties.Settings.Default.______bet_record = 1;
+                        Properties.Settings.Default.Save();
+                        
+                        await ___BETAsync();
+                    }
+                }
+                else
+                {
+                    timer_bet_record.Start();
+                }
+            }
+            else
+            {
+                timer_bet_record.Stop();
+            }
+        }
 
         private void SendMyBot(string message)
         {
@@ -3126,118 +3251,6 @@ namespace YB_Cronos_Data
                 {
                     MessageBox.Show(err.ToString());
                 }
-            }
-        }
-
-        private void timer_midnight_Tick(object sender, EventArgs e)
-        {
-            if (Properties.Settings.Default.______midnight_time == "")
-            {
-                DateTime today = DateTime.Now;
-                DateTime date = today.AddDays(1);
-                Properties.Settings.Default.______midnight_time = date.ToString("yyyy-MM-dd 00:30");
-                Properties.Settings.Default.Save();
-            }
-            else
-            {
-                DateTime today = DateTime.Now;
-                if (Properties.Settings.Default.______midnight_time == today.ToString("yyyy-MM-dd HH:mm"))
-                {
-                    if (Properties.Settings.Default.______start_detect == "0")
-                    {
-                        Properties.Settings.Default.______midnight_time = "";
-                        Properties.Settings.Default.Save();
-
-                        ___GETDATA_AFFILIATELIST();
-                        ___GETDATA_BONUSCODE();
-                        Properties.Settings.Default.______start_detect = "1";
-                        Properties.Settings.Default.Save();
-                        comboBox_list.SelectedIndex = 1;
-                        comboBox_list.SelectedIndex = 0;
-                        button_start.Enabled = true;
-                        button_start.PerformClick();
-                    }
-                }
-                else
-                {
-                    string start_datetime = today.ToString("yyyy-MM-dd HH:mm");
-                    DateTime start = DateTime.ParseExact(start_datetime, "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
-
-                    string end_datetime = Properties.Settings.Default.______midnight_time;
-                    DateTime end = DateTime.ParseExact(end_datetime, "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
-
-                    if (start > end)
-                    {
-                        if (Properties.Settings.Default.______start_detect == "0")
-                        {
-                            Properties.Settings.Default.______midnight_time = "";
-                            Properties.Settings.Default.Save();
-
-                            ___GETDATA_AFFILIATELIST();
-                            ___GETDATA_BONUSCODE();
-                            Properties.Settings.Default.______start_detect = "1";
-                            Properties.Settings.Default.Save();
-                            comboBox_list.SelectedIndex = 1;
-                            comboBox_list.SelectedIndex = 0;
-                            button_start.Enabled = true;
-                            button_start.PerformClick();
-                        }
-                    }
-                }
-            }
-        }
-
-        private void button2_Click(object sender, EventArgs e)
-        {
-            ___GETDATA_AFFILIATELIST();
-            ___GETDATA_BONUSCODE();
-            Properties.Settings.Default.______start_detect = "1";
-            Properties.Settings.Default.Save();
-            comboBox_list.SelectedIndex = 1;
-            comboBox_list.SelectedIndex = 0;
-            button_start.Enabled = true;
-            button_start.PerformClick();
-        }
-
-        private void label_navigate_up_Click(object sender, EventArgs e)
-        {
-            __mainform_handler = Application.OpenForms[0];
-            __mainform_handler.Size = new Size(569, 208);
-            panel_loader.Visible = true;
-            label_navigate_up.Enabled = false;
-        }
-
-        private void label_navigate_down_Click(object sender, EventArgs e)
-        {
-            __mainform_handler = Application.OpenForms[0];
-            __mainform_handler.Size = new Size(569, 514);
-            panel_loader.Visible = false;
-            label_navigate_up.Enabled = true;
-        }
-
-        private void timer_flush_memory_Tick(object sender, EventArgs e)
-        {
-            ___FlushMemory();
-        }
-
-        public static void ___FlushMemory()
-        {
-            Process prs = Process.GetCurrentProcess();
-            try
-            {
-                prs.MinWorkingSet = (IntPtr)(300000);
-            }
-            catch (Exception err)
-            {
-                // leave blank
-            }
-        }
-
-        private async void button2_Click_1Async(object sender, EventArgs e)
-        {
-            if (__is_login)
-            {
-                await ___BETAsync();
             }
         }
     }
