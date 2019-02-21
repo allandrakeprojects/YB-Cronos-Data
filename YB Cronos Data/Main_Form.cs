@@ -3123,7 +3123,7 @@ namespace YB_Cronos_Data
                 {
                     if (__is_login)
                     {
-                        Properties.Settings.Default.______bet_record = 1;
+                        Properties.Settings.Default.______bet_record = 11;
                         Properties.Settings.Default.Save();
                         
                         await ___BETAsync();
