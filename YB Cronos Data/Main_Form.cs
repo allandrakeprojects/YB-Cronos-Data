@@ -2059,8 +2059,15 @@ namespace YB_Cronos_Data
                         _fd_date = "";
                     }
 
-                    DateTime _updated_date_replace_ = DateTime.ParseExact(_updated_date.ToString(), "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
-                    _updated_date = _updated_date_replace_.ToString("yyyy-MM-dd");
+                    if (_updated_date.ToString() != "")
+                    {
+                        DateTime _updated_date_replace_ = DateTime.ParseExact(_updated_date.ToString(), "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
+                        _updated_date = _updated_date_replace_.ToString("yyyy-MM-dd");
+                    }
+                    else
+                    {
+                        _updated_date = "";
+                    }
 
                     if (_display_count == 1)
                     {
@@ -2342,8 +2349,15 @@ namespace YB_Cronos_Data
                     string _reactivated = "";
                     string _fd_date = "";
 
-                    DateTime _updated_date_replace_ = DateTime.ParseExact(_updated_date.ToString(), "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
-                    _updated_date = _updated_date_replace_.ToString("yyyy-MM-dd");
+                    if (_updated_date.ToString() != "")
+                    {
+                        DateTime _updated_date_replace_ = DateTime.ParseExact(_updated_date.ToString(), "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
+                        _updated_date = _updated_date_replace_.ToString("yyyy-MM-dd");
+                    }
+                    else
+                    {
+                        _updated_date = "";
+                    }
 
                     if (__detect_header)
                     {
