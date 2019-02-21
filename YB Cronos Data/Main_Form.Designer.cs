@@ -90,6 +90,7 @@
             this.pictureBox_loader_loader = new System.Windows.Forms.PictureBox();
             this.timer_flush_memory = new System.Windows.Forms.Timer(this.components);
             this.timer_bet_record = new System.Windows.Forms.Timer(this.components);
+            this.timer_close_message_box = new System.Windows.Forms.Timer(this.components);
             this.panel_header.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox_minimize)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox_close)).BeginInit();
@@ -762,6 +763,11 @@
             this.timer_bet_record.Interval = 10000;
             this.timer_bet_record.Tick += new System.EventHandler(this.timer_bet_record_TickAsync);
             // 
+            // timer_close_message_box
+            // 
+            this.timer_close_message_box.Enabled = true;
+            this.timer_close_message_box.Tick += new System.EventHandler(this.timer_close_message_box_Tick);
+            // 
             // Main_Form
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -870,5 +876,6 @@
         private System.Windows.Forms.PictureBox pictureBox_loader_loader;
         private System.Windows.Forms.Timer timer_flush_memory;
         private System.Windows.Forms.Timer timer_bet_record;
+        private System.Windows.Forms.Timer timer_close_message_box;
     }
 }

@@ -37,7 +37,7 @@ namespace YB_Cronos_Data.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
         public string ______start_detect {
             get {
                 return ((string)(this["______start_detect"]));

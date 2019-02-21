@@ -28,7 +28,8 @@ namespace YB_Cronos_Data
         private string __start_datetime_elapsed = "";
         private string __file_location = "\\\\192.168.10.22\\ssi-reporting";
         private string __brand_code = "YB";
-        private string __brand_color = "#EC6506";
+        private string __brand_color_hex = "#EC6506";
+        private string __brand_color_rgb = "236, 103, 5";
         private string __app = "Cronos Data";
         private string __app_type = "2";
         private string __display_length = "100000";
@@ -953,6 +954,8 @@ namespace YB_Cronos_Data
                 {
                     panel_filter.Enabled = true;
                 }
+                
+                __send = 0;
             }
             catch (Exception err)
             {
@@ -1044,6 +1047,8 @@ namespace YB_Cronos_Data
                     JToken _amount = __jo.SelectToken("$.aaData[" + i + "].bonus").ToString();
                     // -----
                     JToken _vip = __jo.SelectToken("$.aaData[" + i + "].vipLevel").ToString();
+                    // -----
+                    JToken _updated_by = __jo.SelectToken("$.aaData[" + i + "].updater").ToString();
                     // ----- Transaction Time
                     string _transaction_time = "";
                     if (_updated_date.ToString() != "")
@@ -1206,14 +1211,16 @@ namespace YB_Cronos_Data
                             var header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12}", "Brand", "Month", "Date", "Transaction Time", "Transaction ID", "Username", "Bonus Code", "Bonus Category", "Purpose", "Amount", "VIP", "Updated by", "Product");
                             _DATA.AppendLine(header);
                         }
-                        var data = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12}", __brand_code, "\"" + _month + "\"", "\"" + _date + "\"", "\"" + _transaction_time + "\"", "\"" + _transaction_id + "\"", "\"" + _username + "\"", "\"" + _bonus_code + "\"", "\"" + _bonus_category + "\"", "\"" + _purpose + "\"", "\"" + _amount + "\"", "\"" + _vip + "\"", "\"" + "" + "\"", "\"" + "" + "\"");
+                        var data = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12}", __brand_code, "\"" + _month + "\"", "\"" + _date + "\"", "\"" + _transaction_time + "\"", "\"" + _transaction_id + "\"", "\"" + _username + "\"", "\"" + _bonus_code + "\"", "\"" + _bonus_category + "\"", "\"" + _purpose + "\"", "\"" + _amount + "\"", "\"" + _vip + "\"", "\"" + _updated_by + "\"", "\"" + "" + "\"");
                         _DATA.AppendLine(data);
                     }
-                    
-                    if (_display_count == 1)
+                    else
                     {
-                        var header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12}", "Brand", "Month", "Date", "Transaction Time", "Transaction ID", "Username", "Bonus Code", "Bonus Category", "Purpose", "Amount", "VIP", "Updated by", "Product");
-                        _DATA.AppendLine(header);
+                        if (_display_count == 1)
+                        {
+                            var header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12}", "Brand", "Month", "Date", "Transaction Time", "Transaction ID", "Username", "Bonus Code", "Bonus Category", "Purpose", "Amount", "VIP", "Updated by", "Product");
+                            _DATA.AppendLine(header);
+                        }
                     }
                 }
 
@@ -1271,6 +1278,8 @@ namespace YB_Cronos_Data
 
                 label_yb_status.Text = "status: doing calculation... --- A-BONUS RECORD";
                 await ___BONUS_ADJUSTMENTAsync();
+                
+                __send = 0;
             }
             catch (Exception err)
             {
@@ -1594,6 +1603,8 @@ namespace YB_Cronos_Data
                 label_finish_datetime.Text = "-";
 
                 label_status.Text = "Waiting";
+                
+                __send = 0;
             }
             catch (Exception err)
             {
@@ -1677,7 +1688,8 @@ namespace YB_Cronos_Data
                             new Uri(__root_url + "/manager/ReportController/downloadBetReport?fileName=" + _file_name + "&realName=" + _name),
                             _folder_path_result_xlsx
                         );
-                        
+
+                        __send = 0;
                         SendReportsTeam("Bet Record Downloaded.");
 
                         break;
@@ -1691,8 +1703,6 @@ namespace YB_Cronos_Data
                 {
                     SendReportsTeam("Can't download Bet Record at this moment.");
                     SendMyBot(err.ToString());
-
-                    Environment.Exit(0);
                 }
                 else
                 {
@@ -1843,7 +1853,6 @@ namespace YB_Cronos_Data
                     {
                         DateTime _fd_date_replace = new DateTime(1970, 1, 1, 0, 0, 0, 0).AddSeconds(Math.Round(Convert.ToDouble(_fd_date.ToString()) / 1000d)).ToLocalTime();
                         _fd_date = _fd_date_replace.ToString("MM/dd/yyyy");
-                        _first_fd_month = _fd_date_replace.ToString("yyyy-MM-01");
                     }
                     else
                     {
@@ -1915,7 +1924,7 @@ namespace YB_Cronos_Data
                     if (_updated_date.ToString() != "")
                     {
                         DateTime _updated_date_replace = new DateTime(1970, 1, 1, 0, 0, 0, 0).AddSeconds(Math.Round(Convert.ToDouble(_updated_date.ToString()) / 1000d)).ToLocalTime();
-                        _updated_date = _updated_date_replace.ToString("yyyy-MM-dd HH:mm:ss");
+                        _updated_date = _updated_date_replace.ToString("yyyy-MM-dd");
                         _time = _updated_date_replace.ToString("yyyy-MM-dd HH:mm:ss");
                     }
                     else
@@ -2003,45 +2012,52 @@ namespace YB_Cronos_Data
                     string _retained = "";
                     string _new = "";
                     string _reactivated = "";
-                    if (_fd_date != "" && _ld_date != "")
+                    if (_status.ToString() == "Approved" && !_member.ToString().ToLower().Contains("test"))
                     {
-                        DateTime _fd_date_ = DateTime.ParseExact(_fd_date, "MM/dd/yyyy", CultureInfo.InvariantCulture);
-                        DateTime _ld_date_ = DateTime.ParseExact(_ld_date, "yyyy-MM-dd", CultureInfo.InvariantCulture);
-                        
-                        var _last2months = DateTime.Today.AddMonths(-2);
-                        DateTime _last2months_ = DateTime.ParseExact(_last2months.ToString("yyyy-MM-dd"), "yyyy-MM-dd", CultureInfo.InvariantCulture);
-                        if (_ld_date_ >= _last2months_)
+                        if (_fd_date != "" && _ld_date != "")
                         {
-                            _retained = "Retained";
-                        }
-                        else
-                        {
-                            _retained = "Not Retained";
-                        }
+                            DateTime _fd_date_ = DateTime.ParseExact(_fd_date, "MM/dd/yyyy", CultureInfo.InvariantCulture);
+                            DateTime _ld_date_ = DateTime.ParseExact(_ld_date, "yyyy-MM-dd", CultureInfo.InvariantCulture);
 
-                        string _month_ = DateTime.Now.Month.ToString();
-                        string _year_ = DateTime.Now.Year.ToString();
-                        string _year_month = _year_ + "-" + _month_;
+                            var _last2months = DateTime.Today.AddMonths(-2);
+                            DateTime _last2months_ = DateTime.ParseExact(_last2months.ToString("yyyy-MM-dd"), "yyyy-MM-dd", CultureInfo.InvariantCulture);
+                            if (_ld_date_ >= _last2months_)
+                            {
+                                _retained = "Retained";
+                            }
+                            else
+                            {
+                                _retained = "Not Retained";
+                            }
 
-                        // new
-                        if (_fd_date_.ToString("yyyy-MM") == _year_month)
-                        {
-                            _new = "New";
-                        }
-                        else
-                        {
-                            _new = "Not New";
-                        }
+                            string _month_ = DateTime.Now.Month.ToString();
+                            string _year_ = DateTime.Now.Year.ToString();
+                            string _year_month = _year_ + "-" + _month_;
 
-                        // reactivated
-                        if (_retained == "Not Retained" && _new == "Not New")
-                        {
-                            _reactivated = "Reactivated";
+                            // new
+                            if (_fd_date_.ToString("yyyy-MM") == _year_month)
+                            {
+                                _new = "New";
+                            }
+                            else
+                            {
+                                _new = "Not New";
+                            }
+
+                            // reactivated
+                            if (_retained == "Not Retained" && _new == "Not New")
+                            {
+                                _reactivated = "Reactivated";
+                            }
+                            else
+                            {
+                                _reactivated = "Not Reactivated";
+                            }
                         }
-                        else
-                        {
-                            _reactivated = "Not Reactivated";
-                        }
+                    }
+                    else
+                    {
+                        _fd_date = "";
                     }
                     
                     if (_display_count == 1)
@@ -2107,6 +2123,8 @@ namespace YB_Cronos_Data
 
                 label_yb_status.Text = "status: doing calculation... --- WITHDRAWAL RECORD";
                 await ___PAYMENT_WITHDRAWALAsync();
+                
+                __send = 0;
             }
             catch (Exception err)
             {
@@ -2178,29 +2196,6 @@ namespace YB_Cronos_Data
                     // -----
                     JToken _vip = __jo.SelectToken("$.aaData[" + i + "].vipLevel").ToString();
                     // -----
-                    string _fd_date = await ___REGISTRATION_FIRSTDEPOSITAsync(_member.ToString());
-                    string _ld_date = await ___REGISTRATION_LASTDEPOSITAsync(_member.ToString());
-                    string _first_fd_month = "";
-                    if (_fd_date != "")
-                    {
-                        DateTime _fd_date_replace = new DateTime(1970, 1, 1, 0, 0, 0, 0).AddSeconds(Math.Round(Convert.ToDouble(_fd_date.ToString()) / 1000d)).ToLocalTime();
-                        _fd_date = _fd_date_replace.ToString("MM/dd/yyyy");
-                        _first_fd_month = _fd_date_replace.ToString("yyyy-MM-01");
-                    }
-                    else
-                    {
-                        _fd_date = "";
-                    }
-                    if (_ld_date != "")
-                    {
-                        DateTime _ld_date_replace = new DateTime(1970, 1, 1, 0, 0, 0, 0).AddSeconds(Math.Round(Convert.ToDouble(_ld_date.ToString()) / 1000d)).ToLocalTime();
-                        _ld_date = _ld_date_replace.ToString("yyyy-MM-dd");
-                    }
-                    else
-                    {
-                        _ld_date = "";
-                    }
-                    // -----
                     JToken _status = __jo.SelectToken("$.aaData[" + i + "].status").ToString();
                     if (_status.ToString() == "0")
                     {
@@ -2239,7 +2234,7 @@ namespace YB_Cronos_Data
                     if (_updated_date.ToString() != "")
                     {
                         DateTime _updated_date_replace = new DateTime(1970, 1, 1, 0, 0, 0, 0).AddSeconds(Math.Round(Convert.ToDouble(_updated_date.ToString()) / 1000d)).ToLocalTime();
-                        _updated_date = _updated_date_replace.ToString("yyyy-MM-dd HH:mm:ss");
+                        _updated_date = _updated_date_replace.ToString("yyyy-MM-dd");
                         _time = _updated_date_replace.ToString("yyyy-MM-dd HH:mm:ss");
                     }
                     else
@@ -2343,47 +2338,7 @@ namespace YB_Cronos_Data
                     string _retained = "";
                     string _new = "";
                     string _reactivated = "";
-                    if (_fd_date != "" && _ld_date != "")
-                    {
-                        DateTime _fd_date_ = DateTime.ParseExact(_fd_date, "MM/dd/yyyy", CultureInfo.InvariantCulture);
-                        DateTime _ld_date_ = DateTime.ParseExact(_ld_date, "yyyy-MM-dd", CultureInfo.InvariantCulture);
-
-                        // retained
-                        var _last2months = DateTime.Today.AddMonths(-2);
-                        DateTime _last2months_ = DateTime.ParseExact(_last2months.ToString("yyyy-MM-dd"), "yyyy-MM-dd", CultureInfo.InvariantCulture);
-                        if (_ld_date_ >= _last2months_)
-                        {
-                            _retained = "Retained";
-                        }
-                        else
-                        {
-                            _retained = "Not Retained";
-                        }
-
-                        string _month_ = DateTime.Now.Month.ToString();
-                        string _year_ = DateTime.Now.Year.ToString();
-                        string _year_month = _year_ + "-" + _month_;
-
-                        // new
-                        if (_fd_date_.ToString("yyyy-MM") == _year_month)
-                        {
-                            _new = "New";
-                        }
-                        else
-                        {
-                            _new = "Not New";
-                        }
-
-                        // _reactivated
-                        if (_retained == "Not Retained" && _new == "Not New")
-                        {
-                            _reactivated = "Reactivated";
-                        }
-                        else
-                        {
-                            _reactivated = "Not Reactivated";
-                        }
-                    }
+                    string _fd_date = "";
                     
                     if (__detect_header)
                     {
@@ -2518,6 +2473,8 @@ namespace YB_Cronos_Data
                 {
                     panel_filter.Enabled = true;
                 }
+
+                __send = 0;
             }
             catch (Exception err)
             {
@@ -2615,6 +2572,8 @@ namespace YB_Cronos_Data
                     JToken _amount = __jo.SelectToken("$.aaData[" + i + "].amount").ToString();
                     // -----
                     JToken _vip = __jo.SelectToken("$.aaData[" + i + "].vipLevel").ToString();
+                    // -----
+                    JToken _updated_by = __jo.SelectToken("$.aaData[" + i + "].creator").ToString();
                     // ----- Transaction Time
                     string _transaction_time = "00:00:00";
                     // ----- Bonus Category
@@ -2738,7 +2697,7 @@ namespace YB_Cronos_Data
 
                         if (__detect_header)
                         {
-                            var data = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12}", __brand_code, "\"" + _month + "\"", "\"" + _date + "\"", "\"" + _transaction_time + "\"", "\"" + _transaction_id + "\"", "\"" + _username + "\"", "\"" + _bonus_code + "\"", "\"" + _bonus_category + "\"", "\"" + _purpose + "\"", "\"" + _amount + "\"", "\"" + _vip + "\"", "\"" + "" + "\"", "\"" + "" + "\"");
+                            var data = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12}", __brand_code, "\"" + _month + "\"", "\"" + _date + "\"", "\"" + _transaction_time + "\"", "\"" + _transaction_id + "\"", "\"" + _username + "\"", "\"" + _bonus_code + "\"", "\"" + _bonus_category + "\"", "\"" + _purpose + "\"", "\"" + _amount + "\"", "\"" + _vip + "\"", "\"" + _updated_by + "\"", "\"" + "" + "\"");
                             _DATA.AppendLine(data);
                         }
                         else
@@ -2748,17 +2707,19 @@ namespace YB_Cronos_Data
                                 var header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12}", "Brand", "Month", "Date", "Transaction Time", "Transaction ID", "Username", "Bonus Code", "Bonus Category", "Purpose", "Amount", "VIP", "Updated by", "Product");
                                 _DATA.AppendLine(header);
                             }
-                            var data = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12}", __brand_code, "\"" + _month + "\"", "\"" + _date + "\"", "\"" + _transaction_time + "\"", "\"" + _transaction_id + "\"", "\"" + _username + "\"", "\"" + _bonus_code + "\"", "\"" + _bonus_category + "\"", "\"" + _purpose + "\"", "\"" + _amount + "\"", "\"" + _vip + "\"", "\"" + "" + "\"", "\"" + "" + "\"");
+                            var data = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12}", __brand_code, "\"" + _month + "\"", "\"" + _date + "\"", "\"" + _transaction_time + "\"", "\"" + _transaction_id + "\"", "\"" + _username + "\"", "\"" + _bonus_code + "\"", "\"" + _bonus_category + "\"", "\"" + _purpose + "\"", "\"" + _amount + "\"", "\"" + _vip + "\"", "\"" + _updated_by + "\"", "\"" + "" + "\"");
                             _DATA.AppendLine(data);
                         }
                     }
-
-                    if (!__detect_header)
+                    else
                     {
-                        if (_display_count == 1)
+                        if (!__detect_header)
                         {
-                            var header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12}", "Brand", "Month", "Date", "Transaction Time", "Transaction ID", "Username", "Bonus Code", "Bonus Category", "Purpose", "Amount", "VIP", "Updated by", "Product");
-                            _DATA.AppendLine(header);
+                            if (_display_count == 1)
+                            {
+                                var header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12}", "Brand", "Month", "Date", "Transaction Time", "Transaction ID", "Username", "Bonus Code", "Bonus Category", "Purpose", "Amount", "VIP", "Updated by", "Product");
+                                _DATA.AppendLine(header);
+                            }
                         }
                     }
                 }
@@ -2876,6 +2837,8 @@ namespace YB_Cronos_Data
                 {
                     panel_filter.Enabled = true;
                 }
+                
+                __send = 0;
             }
             catch (Exception err)
             {
@@ -3161,6 +3124,8 @@ namespace YB_Cronos_Data
                     if (line != null)
                         sb.Append(line);
                 }
+
+                __send = 0;
             }
             catch (Exception err)
             {
@@ -3201,6 +3166,8 @@ namespace YB_Cronos_Data
                         sb.Append(line);
                     }
                 }
+                
+                __send = 0;
             }
             catch (Exception err)
             {
@@ -3239,6 +3206,8 @@ namespace YB_Cronos_Data
                     if (line != null)
                         sb.Append(line);
                 }
+                
+                __send = 0;
             }
             catch (Exception err)
             {
@@ -3252,6 +3221,31 @@ namespace YB_Cronos_Data
                     MessageBox.Show(err.ToString());
                 }
             }
+        }
+
+        [DllImport("user32.dll", EntryPoint = "FindWindow", SetLastError = true, CharSet = CharSet.Unicode)]
+        static extern IntPtr FindWindowByCaption(IntPtr ZeroOnly, string lpWindowName);
+
+        [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+        static extern IntPtr SendMessage(IntPtr hWnd, UInt32 Msg, IntPtr wParam, IntPtr lParam);
+
+        const UInt32 WM_CLOSE = 0x0010;
+
+        void ___CloseMessageBox()
+        {
+            IntPtr windowPtr = FindWindowByCaption(IntPtr.Zero, "JavaScript Alert - " + __root_url);
+
+            if (windowPtr == IntPtr.Zero)
+            {
+                return;
+            }
+
+            SendMessage(windowPtr, WM_CLOSE, IntPtr.Zero, IntPtr.Zero);
+        }
+
+        private void timer_close_message_box_Tick(object sender, EventArgs e)
+        {
+            ___CloseMessageBox();
         }
     }
 }
