@@ -1130,15 +1130,8 @@ namespace YB_Cronos_Data
                                     string get3 = get1.Substring(2);
                                     string get4 = get1.Substring(0, 2);
 
-                                    //if (get2 == "FD" || get2 == "RA")
-                                    //{
-                                    //    get1 = _bonus_code.ToString().Substring(6, 4);
-                                    //    get2 = get1.Substring(0, 3);
-                                    //    get3 = get1.Substring(3);
-                                    //}
-
-                                    ArrayList items_code = new ArrayList(new string[] { "AD", "FDB", "DP", "PZ", "RF", "RAF", "RB", "SU", "TO", "RR", "CB", "GW", "RW", "TE" });
-                                    ArrayList items_bonus_category = new ArrayList(new string[] { "Adjustment", "FDB", "Deposit", "Prize", "Refer friend", "Refer friend", "Reload", "Signup Bonus", "Turnover", "Rebate", "Cashback", "Goodwill Bonus", "Reward", "Test" });
+                                    ArrayList items_code = new ArrayList(new string[] { "AD", "FD", "FDB", "DP", "PZ", "RF", "RAF", "RB", "SU", "TO", "RR", "CB", "GW", "RW", "TE" });
+                                    ArrayList items_bonus_category = new ArrayList(new string[] { "Adjustment", "FDB", "FDB", "Deposit", "Prize", "Refer friend", "Refer friend", "Reload", "Signup Bonus", "Turnover", "Rebate", "Cashback", "Goodwill Bonus", "Reward", "Test" });
                                     int count_ = 0;
                                     foreach (var item in items_code)
                                     {
@@ -1512,10 +1505,7 @@ namespace YB_Cronos_Data
 
                     _DATA.ToString().Reverse();
 
-                    using (StreamWriter file = new StreamWriter(_folder_path_result, true, Encoding.UTF8))
-                    {
-                        file.Write(_DATA.ToString());
-                    }
+                    File.WriteAllText(_folder_path_result, _DATA.ToString(), Encoding.UTF8);
 
                     Excel.Application app = new Excel.Application();
                     Excel.Workbook wb = app.Workbooks.Open(_folder_path_result, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing);
@@ -1578,10 +1568,10 @@ namespace YB_Cronos_Data
                 label_page_count.Text = "-";
                 label_total_records.Text = "-";
                 button_start.Visible = true;
-                button_start.Enabled = false;
                 if (__is_autostart)
                 {
                     comboBox_list.SelectedIndex = 0;
+                    button_start.Enabled = false;
 
                     SendITSupport("Reports has been completed.");
                     SendReportsTeam("Reports has been completed.");
