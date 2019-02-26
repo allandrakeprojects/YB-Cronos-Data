@@ -783,7 +783,7 @@ namespace YB_Cronos_Data
                     if (_registration_date.ToString() != "")
                     {
                         DateTime _registration_date_replace = new DateTime(1970, 1, 1, 0, 0, 0, 0).AddSeconds(Math.Round(Convert.ToDouble(_registration_date.ToString()) / 1000d)).ToLocalTime();
-                        _registration_date = _registration_date_replace.ToString("yyyy-MM-dd HH:mm:ss");
+                        _registration_date = _registration_date_replace.ToString("yyyy-MM-dd");
                         _month_reg = _registration_date_replace.ToString("yyyy-MM-01");
 
                     }
@@ -834,7 +834,7 @@ namespace YB_Cronos_Data
                         var header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},{19},{20}", "Brand", "Username", "Name", "Status", "Date Registered", "Last Login Date", "Last Deposit Date", "Contact Number", "Email", "VIP Level", "Registration Date", "Month Reg", "First Deposit Date", "First Deposit Month", "IP Address", "Affiliate", "Source", "Date of Birth", "User ID", "Wechat", "QQ");
                         _DATA.AppendLine(header);
                     }
-                    var data = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},{19},{20}", __brand_code, "\"" + _username + "\"", "\"" + _name + "\"", "\"" + _status + "\"", "\"" + _registration_date + "\"", "\"" + _last_login_date + "\"", "\"" + _ld_date + "\"", "\"" + _contact_number + "\"", "\"" + _email + "\"", "\"" + _vip + "\"", "\"" + _registration_date + "\"", "\"" + _month_reg + "\"", "\"" + _fd_date + "\"", "\"" + _first_fd_month + "\"", "\"" + _ip_address + "\"", "\"" + _affiliate_url + "\"", "\"" + _source + "\"", "\"" + _dob + "\"", "\"" + "" + "\"", "\"" + "" + "\"", "\"" + "" + "\"");
+                    var data = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},{19},{20}", __brand_code, "\"" + _username + "\"", "\"" + _name + "\"", "\"" + _status + "\"", "\"" + _registration_date + "\"", "\"" + _last_login_date + "\"", "\"" + _ld_date + "\"", "\"" + "86" + _contact_number + "\"", "\"" + _email + "\"", "\"" + _vip + "\"", "\"" + _registration_date + "\"", "\"" + _month_reg + "\"", "\"" + _fd_date + "\"", "\"" + _first_fd_month + "\"", "\"" + _ip_address + "\"", "\"" + _affiliate_url + "\"", "\"" + _source + "\"", "\"" + _dob + "\"", "\"" + "" + "\"", "\"" + "" + "\"", "\"" + "" + "\"");
                     _DATA.AppendLine(data);
                 }
 
@@ -1880,9 +1880,17 @@ namespace YB_Cronos_Data
                     {
                         _status = "Approved";
                     }
-                    else if (_status.ToString() == "-2")
+                    else if (_status.ToString() == "-1" || _status.ToString() == "-2")
                     {
                         _status = "Rejected";
+                    }
+                    else if (_status.ToString() == "1")
+                    {
+                        _status = "Verified";
+                    }
+                    else if (_status.ToString() == "3")
+                    {
+                        _status = "On Hold";
                     }
                     else
                     {
@@ -2049,15 +2057,16 @@ namespace YB_Cronos_Data
                         _fd_date = "";
                     }
 
-                    if (_updated_date.ToString() != "")
-                    {
-                        DateTime _updated_date_replace_ = DateTime.ParseExact(_updated_date.ToString(), "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
-                        _updated_date = _updated_date_replace_.ToString("yyyy-MM-dd");
-                    }
-                    else
-                    {
-                        _updated_date = "";
-                    }
+                    _updated_date = _date;
+                    //if (_updated_date.ToString() != "")
+                    //{
+                    //    DateTime _updated_date_replace_ = DateTime.ParseExact(_updated_date.ToString(), "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
+                    //    _updated_date = _updated_date_replace_.ToString("yyyy-MM-dd");
+                    //}
+                    //else
+                    //{
+                    //    _updated_date = "";
+                    //}
 
                     if (_display_count == 1)
                     {
@@ -2204,9 +2213,17 @@ namespace YB_Cronos_Data
                     {
                         _status = "Approved";
                     }
-                    else if (_status.ToString() == "-2")
+                    else if (_status.ToString() == "-1" || _status.ToString() == "-2")
                     {
                         _status = "Rejected";
+                    }
+                    else if (_status.ToString() == "1")
+                    {
+                        _status = "Verified";
+                    }
+                    else if (_status.ToString() == "3")
+                    {
+                        _status = "On Hold";
                     }
                     else
                     {
@@ -2339,15 +2356,16 @@ namespace YB_Cronos_Data
                     string _reactivated = "";
                     string _fd_date = "";
 
-                    if (_updated_date.ToString() != "")
-                    {
-                        DateTime _updated_date_replace_ = DateTime.ParseExact(_updated_date.ToString(), "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
-                        _updated_date = _updated_date_replace_.ToString("yyyy-MM-dd");
-                    }
-                    else
-                    {
-                        _updated_date = "";
-                    }
+                    _updated_date = _date;
+                    //if (_updated_date.ToString() != "")
+                    //{
+                    //    DateTime _updated_date_replace_ = DateTime.ParseExact(_updated_date.ToString(), "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
+                    //    _updated_date = _updated_date_replace_.ToString("yyyy-MM-dd");
+                    //}
+                    //else
+                    //{
+                    //    _updated_date = "";
+                    //}
 
                     if (__detect_header)
                     {
