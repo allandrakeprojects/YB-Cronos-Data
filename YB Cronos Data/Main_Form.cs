@@ -40,6 +40,7 @@ namespace YB_Cronos_Data
         private bool __is_start = false;
         private bool __is_autostart = true;
         private bool __detect_header = false;
+        private bool __is_send = true;
         private JObject __jo;
         private JToken __jo_count;
         private ChromiumWebBrowser chromeBrowser;
@@ -968,6 +969,7 @@ namespace YB_Cronos_Data
                 }
                 else
                 {
+                    ___WaitNSeconds(10);
                     await ___REGISTRATIONAsync();
                 }
             }
@@ -1285,6 +1287,7 @@ namespace YB_Cronos_Data
                 }
                 else
                 {
+                    ___WaitNSeconds(10);
                     await ___BONUSAsync();
                 }
             }
@@ -1607,6 +1610,7 @@ namespace YB_Cronos_Data
                 }
                 else
                 {
+                    ___WaitNSeconds(10);
                     await ___TURNOVERAsync();
                 }
             }
@@ -1695,6 +1699,7 @@ namespace YB_Cronos_Data
                 }
                 else
                 {
+                    ___WaitNSeconds(10);
                     await ___BETAsync();
                 }
             }
@@ -2146,6 +2151,7 @@ namespace YB_Cronos_Data
                 }
                 else
                 {
+                    ___WaitNSeconds(10);
                     await ___PAYMENT_DEPOSITAsync();
                 }
             }
@@ -2515,6 +2521,7 @@ namespace YB_Cronos_Data
                 }
                 else
                 {
+                    ___WaitNSeconds(10);
                     await ___PAYMENT_WITHDRAWALAsync();
                 }
             }
@@ -2879,6 +2886,7 @@ namespace YB_Cronos_Data
                 }
                 else
                 {
+                    ___WaitNSeconds(10);
                     await ___BONUS_ADJUSTMENTAsync();
                 }
             }
@@ -3159,12 +3167,14 @@ namespace YB_Cronos_Data
                 __send++;
                 if (__send == 5)
                 {
-                    MessageBox.Show(err.ToString());
+                    //SendITSupport("There's a problem to the server, please re-open the application.");
+                    SendMyBot(err.ToString());
 
                     Environment.Exit(0);
                 }
                 else
                 {
+                    ___WaitNSeconds(10);
                     SendMyBot(message);
                 }
             }
@@ -3172,42 +3182,47 @@ namespace YB_Cronos_Data
 
         private void SendITSupport(string message)
         {
-            try
+            if (__is_send)
             {
-                string datetime = DateTime.Now.ToString("dd MMM HH:mm:ss");
-                string urlString = "https://api.telegram.org/bot{0}/sendMessage?chat_id={1}&text={2}";
-                string apiToken = "612187347:AAE9doWWcStpWrDrfpOod89qGSxCJ5JwQO4";
-                string chatId = "@it_support_ssi";
-                string text = "-----" + __brand_code + " " + __app + "-----%0A%0AIP:%20" + Properties.Settings.Default.______server_ip + "%0ALocation:%20" + Properties.Settings.Default.______server_location + "%0ADate%20and%20Time:%20[" + datetime + "]%0AMessage:%20" + message + "";
-                urlString = string.Format(urlString, apiToken, chatId, text);
-                WebRequest request = WebRequest.Create(urlString);
-                Stream rs = request.GetResponse().GetResponseStream();
-                StreamReader reader = new StreamReader(rs);
-                string line = "";
-                StringBuilder sb = new StringBuilder();
-                while (line != null)
+                try
                 {
-                    line = reader.ReadLine();
-                    if (line != null)
+                    string datetime = DateTime.Now.ToString("dd MMM HH:mm:ss");
+                    string urlString = "https://api.telegram.org/bot{0}/sendMessage?chat_id={1}&text={2}";
+                    string apiToken = "612187347:AAE9doWWcStpWrDrfpOod89qGSxCJ5JwQO4";
+                    string chatId = "@it_support_ssi";
+                    string text = "-----" + __brand_code + " " + __app + "-----%0A%0AIP:%20" + Properties.Settings.Default.______server_ip + "%0ALocation:%20" + Properties.Settings.Default.______server_location + "%0ADate%20and%20Time:%20[" + datetime + "]%0AMessage:%20" + message + "";
+                    urlString = string.Format(urlString, apiToken, chatId, text);
+                    WebRequest request = WebRequest.Create(urlString);
+                    Stream rs = request.GetResponse().GetResponseStream();
+                    StreamReader reader = new StreamReader(rs);
+                    string line = "";
+                    StringBuilder sb = new StringBuilder();
+                    while (line != null)
                     {
-                        sb.Append(line);
+                        line = reader.ReadLine();
+                        if (line != null)
+                        {
+                            sb.Append(line);
+                        }
                     }
-                }
-                
-                __send = 0;
-            }
-            catch (Exception err)
-            {
-                __send++;
-                if (__send == 5)
-                {
-                    MessageBox.Show(err.ToString());
 
-                    Environment.Exit(0);
+                    __send = 0;
                 }
-                else
+                catch (Exception err)
                 {
-                    SendITSupport(message);
+                    __send++;
+                    if (__send == 5)
+                    {
+                        //SendITSupport("There's a problem to the server, please re-open the application.");
+                        SendMyBot(err.ToString());
+
+                        Environment.Exit(0);
+                    }
+                    else
+                    {
+                        ___WaitNSeconds(10);
+                        SendITSupport(message);
+                    }
                 }
             }
         }
@@ -3239,13 +3254,17 @@ namespace YB_Cronos_Data
             catch (Exception err)
             {
                 __send++;
-                if (__send <= 5)
+                if (__send == 5)
                 {
-                    SendReportsTeam(message);
+                    //SendITSupport("There's a problem to the server, please re-open the application.");
+                    SendMyBot(err.ToString());
+
+                    Environment.Exit(0);
                 }
                 else
                 {
-                    MessageBox.Show(err.ToString());
+                    ___WaitNSeconds(10);
+                    SendReportsTeam(message);
                 }
             }
         }
@@ -3273,6 +3292,30 @@ namespace YB_Cronos_Data
         private void timer_close_message_box_Tick(object sender, EventArgs e)
         {
             ___CloseMessageBox();
+        }
+
+        private void panel_MouseDoubleClick(object sender, MouseEventArgs e)
+        {
+            if (__is_send)
+            {
+                __is_send = false;
+                MessageBox.Show("Telegram Notification is Disabled.", __brand_code + " " + __app, MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            else
+            {
+                __is_send = true;
+                MessageBox.Show("Telegram Notification is Enabled.", __brand_code + " " + __app, MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+        }
+
+        private void ___WaitNSeconds(int sec)
+        {
+            if (sec < 1) return;
+            DateTime _desired = DateTime.Now.AddSeconds(sec);
+            while (DateTime.Now < _desired)
+            {
+                Application.DoEvents();
+            }
         }
     }
 }
