@@ -1506,6 +1506,16 @@ namespace YB_Cronos_Data
                     string _folder_path_result = __file_location + "\\Cronos Data\\" + __brand_code + "\\" + _current_datetime + "\\Turnover Record\\" + __brand_code + "_TurnoverRecord_" + _current_datetime + "_1.txt";
                     string _folder_path_result_xlsx = __file_location + "\\Cronos Data\\" + __brand_code + "\\" + _current_datetime + "\\Turnover Record\\" + __brand_code + "_TurnoverRecord_" + _current_datetime + "_1.xlsx";
 
+                    if (File.Exists(_folder_path_result))
+                    {
+                        File.Delete(_folder_path_result);
+                    }
+
+                    if (File.Exists(_folder_path_result_xlsx))
+                    {
+                        File.Delete(_folder_path_result_xlsx);
+                    }
+                    
                     _DATA.ToString().Reverse();
 
                     File.WriteAllText(_folder_path_result, _DATA.ToString(), Encoding.UTF8);
@@ -1683,7 +1693,8 @@ namespace YB_Cronos_Data
                         );
 
                         __send = 0;
-                        SendReportsTeam("Bet Record Downloaded.");
+
+                        ___BET_PROCESS(_folder_path_result_xlsx);
 
                         break;
                     }
@@ -1702,6 +1713,212 @@ namespace YB_Cronos_Data
                     ___WaitNSeconds(10);
                     await ___BETAsync();
                 }
+            }
+        }
+
+        private void ___BET_PROCESS(string path)
+        {
+            StringBuilder _DATA = new StringBuilder();
+            int _display_count = 0;
+            label_betrecord.Visible = true;
+
+            try
+            {
+                Excel.Application app_ = new Excel.Application();
+                Excel.Workbook workbook_ = app_.Workbooks.Open(path);
+                Excel._Worksheet worksheet_ = workbook_.Sheets[1];
+                Excel.Range range_ = worksheet_.UsedRange;
+
+                int rowCount = range_.Rows.Count;
+                int colCount = range_.Columns.Count;
+
+                for (int i = 1; i <= rowCount; i++)
+                {
+                    if (i != 1)
+                    {
+                        Application.DoEvents();
+
+                        int count_ = 0;
+                        string _month = DateTime.Now.ToString("MMM-y");
+                        string _date = DateTime.Now.AddDays(-1).ToString("yyyy/MM/dd");
+                        string _product = "";
+                        string _provider = "";
+                        string _username = "";
+                        string _vip = "";
+                        string _bet_no = "";
+                        string _time_placed = "";
+                        string _time_settled = "";
+                        string _game = "";
+                        string _settlement = "";
+                        string _bet_amount = "";
+                        string _turnover = "";
+                        string _payout = "";
+                        string _member_wl = "";
+                        string _create_time = "";
+
+                        _display_count++;
+                        label_betrecord.Text = "Bet Record: " + _display_count.ToString("N0") + " of " + rowCount.ToString("N0");
+                        string _details = "";
+                        for (int j = 1; j <= colCount; j++)
+                        {
+                            count_++;
+
+                            try
+                            {
+                                _details += range_.Cells[i, j].Value2.ToString() + "|";
+                            }
+                            catch (Exception err)
+                            {
+                                _details += "" + "|";
+                            }
+                        }
+
+                        string[] results = _details.Split('|');
+                        _product = results[2];
+                        _provider = results[3];
+                        if (_provider.Trim() == "开元棋牌")
+                        {
+                            _product = "Card Game";
+                        }
+                        _username = results[4];
+                        _vip = results[5];
+                        _bet_no = results[6];
+                        _time_placed = results[7];
+                        DateTime _time_placed_repalce = DateTime.ParseExact(_time_placed.ToString(), "yyyy/MM/dd HH:mm:ss", CultureInfo.InvariantCulture);
+                        _time_placed = _time_placed_repalce.ToString("yyyy/MM/dd hh:mm:ss tt");
+                        _time_settled = results[8];
+                        DateTime _time_settled_replace = DateTime.ParseExact(_time_settled.ToString(), "yyyy/MM/dd HH:mm:ss", CultureInfo.InvariantCulture);
+                        _time_settled = _time_settled_replace.ToString("yyyy/MM/dd hh:mm:ss tt");
+                        _game = results[9];
+                        _settlement = results[10];
+                        _bet_amount = results[11];
+                        _turnover = results[12];
+                        _payout = results[13];
+                        _member_wl = results[14];
+                        _create_time = results[15];
+
+                        if (_display_count == 1)
+                        {
+                            var header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15}", "Month", "Date", "Product", "Provider", "Username", "VIP Level", "Bet No", "Time Placed", "Time Settled", "Game(Translate English)", "Settlement", "Bet Amount", "Turnover", "Payout", "Member WL", "Create Time");
+                            _DATA.AppendLine(header);
+                        }
+                        var data = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15}", _month, "\"" + _date + "\"", "\"" + _product + "\"", "\"" + _provider + "\"", "\"" + _username + "\"", "\"" + _vip + "\"", "\"" + _bet_no + "\"", "\"" + _time_placed + "\"", "\"" + _time_settled + "\"", "\"" + _game + "\"", "\"" + _settlement + "\"", "\"" + _bet_amount + "\"", "\"" + _turnover + "\"", "\"" + _payout + "\"", "\"" + _member_wl + "\"", "\"" + _create_time + "\"");
+                        _DATA.AppendLine(data);
+                    }
+                }
+
+                workbook_.Close();
+                app_.Quit();
+                Marshal.ReleaseComObject(app_);
+
+                // BET SAVING EXCEL
+                string _current_datetime = DateTime.Now.ToString("yyyy-MM-dd");
+                if (!Directory.Exists(__file_location + "\\Cronos Data"))
+                {
+                    Directory.CreateDirectory(__file_location + "\\Cronos Data");
+                }
+
+                if (!Directory.Exists(__file_location + "\\Cronos Data\\" + __brand_code))
+                {
+                    Directory.CreateDirectory(__file_location + "\\Cronos Data\\" + __brand_code);
+                }
+
+                if (!Directory.Exists(__file_location + "\\Cronos Data\\" + __brand_code + "\\" + _current_datetime))
+                {
+                    Directory.CreateDirectory(__file_location + "\\Cronos Data\\" + __brand_code + "\\" + _current_datetime);
+                }
+
+                if (!Directory.Exists(__file_location + "\\Cronos Data\\" + __brand_code + "\\" + _current_datetime + "\\Bet Record"))
+                {
+                    Directory.CreateDirectory(__file_location + "\\Cronos Data\\" + __brand_code + "\\" + _current_datetime + "\\Bet Record");
+                }
+
+                string _folder_path_result = __file_location + "\\Cronos Data\\" + __brand_code + "\\" + _current_datetime + "\\Bet Record\\" + __brand_code + "_BetRecord_" + _current_datetime + "_1.txt";
+                string _folder_path_result_xlsx = __file_location + "\\Cronos Data\\" + __brand_code + "\\" + _current_datetime + "\\Bet Record\\" + __brand_code + "_BetRecord_" + _current_datetime + "_1.xlsx";
+
+                if (File.Exists(_folder_path_result))
+                {
+                    File.Delete(_folder_path_result);
+                }
+
+                if (File.Exists(_folder_path_result_xlsx))
+                {
+                    File.Delete(_folder_path_result_xlsx);
+                }
+
+                File.WriteAllText(_folder_path_result, _DATA.ToString(), Encoding.UTF8);
+
+                Excel.Application app = new Excel.Application();
+                Excel.Workbook wb = app.Workbooks.Open(_folder_path_result, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing);
+                Excel.Worksheet worksheet = wb.ActiveSheet;
+                worksheet.Activate();
+                worksheet.Application.ActiveWindow.SplitRow = 1;
+                worksheet.Application.ActiveWindow.FreezePanes = true;
+                Excel.Range firstRow = (Excel.Range)worksheet.Rows[1];
+                firstRow.AutoFilter(1,
+                                    Type.Missing,
+                                    Excel.XlAutoFilterOperator.xlAnd,
+                                    Type.Missing,
+                                    true);
+                worksheet.Columns[1].NumberFormat = "MMM-y";
+                worksheet.Columns[8].NumberFormat = "MM/dd/yyyy HH:mm";
+                worksheet.Columns[9].NumberFormat = "MM/dd/yyyy HH:mm";
+                Excel.Range usedRange = worksheet.UsedRange;
+                Excel.Range rows = usedRange.Rows;
+                int count = 0;
+                foreach (Excel.Range row in rows)
+                {
+                    if (count == 0)
+                    {
+                        Excel.Range firstCell = row.Cells[1];
+
+                        string firstCellValue = firstCell.Value as string;
+
+                        if (!string.IsNullOrEmpty(firstCellValue))
+                        {
+                            row.Interior.Color = Color.FromArgb(27, 96, 168);
+                            row.Font.Color = Color.FromArgb(255, 255, 255);
+                        }
+
+                        break;
+                    }
+
+                    count++;
+                }
+                int i_;
+                for (i_ = 1; i_ <= 21; i_++)
+                {
+                    worksheet.Columns[i_].ColumnWidth = 20;
+                }
+                wb.SaveAs(_folder_path_result_xlsx, Excel.XlFileFormat.xlOpenXMLWorkbook, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Excel.XlSaveAsAccessMode.xlExclusive, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing);
+                wb.Close();
+                app.Quit();
+                Marshal.ReleaseComObject(app);
+
+                if (File.Exists(_folder_path_result))
+                {
+                    File.Delete(_folder_path_result);
+                }
+
+                if (File.Exists(path))
+                {
+                    File.Delete(path);
+                }
+
+                _DATA.Clear();
+                _display_count = 0;
+                __send = 0;
+                
+                SendReportsTeam("Bet Record Completed.");
+                label_betrecord.Visible = false;
+                label_betrecord.Text = "-";
+            }
+            catch (Exception err)
+            {
+                ___WaitNSeconds(5);
+                _DATA.Clear();
+                _display_count = 0;
+                ___BET_PROCESS(path);
             }
         }
 
@@ -1914,7 +2131,6 @@ namespace YB_Cronos_Data
                         DateTime _submitted_date_replace = new DateTime(1970, 1, 1, 0, 0, 0, 0).AddSeconds(Math.Round(Convert.ToDouble(_submitted_date.ToString()) / 1000d)).ToLocalTime();
                         _submitted_date = _submitted_date_replace.ToString("yyyy-MM-dd HH:mm:ss");
                         _month = _submitted_date_replace.ToString("yyyy-MM-01");
-                        _date = _submitted_date_replace.ToString("yyyy-MM-dd");
                     }
                     else
                     {
@@ -1927,6 +2143,7 @@ namespace YB_Cronos_Data
                     {
                         DateTime _updated_date_replace = new DateTime(1970, 1, 1, 0, 0, 0, 0).AddSeconds(Math.Round(Convert.ToDouble(_updated_date.ToString()) / 1000d)).ToLocalTime();
                         _updated_date = _updated_date_replace.ToString("yyyy-MM-dd HH:mm:ss");
+                        _date = _updated_date_replace.ToString("yyyy-MM-dd");
                         _time = _updated_date_replace.ToString("yyyy-MM-dd HH:mm:ss");
                     }
                     else
@@ -2061,8 +2278,7 @@ namespace YB_Cronos_Data
                     {
                         _fd_date = "";
                     }
-
-                    _updated_date = _date;
+                    
                     //if (_updated_date.ToString() != "")
                     //{
                     //    DateTime _updated_date_replace_ = DateTime.ParseExact(_updated_date.ToString(), "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
@@ -2244,7 +2460,6 @@ namespace YB_Cronos_Data
                         DateTime _submitted_date_replace = new DateTime(1970, 1, 1, 0, 0, 0, 0).AddSeconds(Math.Round(Convert.ToDouble(_submitted_date.ToString()) / 1000d)).ToLocalTime();
                         _submitted_date = _submitted_date_replace.ToString("yyyy-MM-dd HH:mm:ss");
                         _month = _submitted_date_replace.ToString("yyyy-MM-01");
-                        _date = _submitted_date_replace.ToString("yyyy-MM-dd");
                     }
                     else
                     {
@@ -2257,6 +2472,7 @@ namespace YB_Cronos_Data
                     {
                         DateTime _updated_date_replace = new DateTime(1970, 1, 1, 0, 0, 0, 0).AddSeconds(Math.Round(Convert.ToDouble(_updated_date.ToString()) / 1000d)).ToLocalTime();
                         _updated_date = _updated_date_replace.ToString("yyyy-MM-dd HH:mm:ss");
+                        _date = _updated_date_replace.ToString("yyyy-MM-dd");
                         _time = _updated_date_replace.ToString("yyyy-MM-dd HH:mm:ss");
                     }
                     else
@@ -2286,6 +2502,7 @@ namespace YB_Cronos_Data
                         }
 
                         end_date = DateTime.ParseExact(_verified_date.ToString(), "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
+                        _updated_date = _verified_date.ToString();
                     }
                     TimeSpan span = end_date - start_date;
                     double totalMinutes = Math.Floor(span.TotalMinutes);
@@ -2361,8 +2578,7 @@ namespace YB_Cronos_Data
                     string _new = "";
                     string _reactivated = "";
                     string _fd_date = "";
-
-                    _updated_date = _date;
+                    
                     //if (_updated_date.ToString() != "")
                     //{
                     //    DateTime _updated_date_replace_ = DateTime.ParseExact(_updated_date.ToString(), "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);

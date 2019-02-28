@@ -91,6 +91,7 @@
             this.timer_flush_memory = new System.Windows.Forms.Timer(this.components);
             this.timer_bet_record = new System.Windows.Forms.Timer(this.components);
             this.timer_close_message_box = new System.Windows.Forms.Timer(this.components);
+            this.label_betrecord = new System.Windows.Forms.Label();
             this.panel_header.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox_minimize)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox_close)).BeginInit();
@@ -114,6 +115,7 @@
             this.panel_header.Controls.Add(this.label_title);
             this.panel_header.Controls.Add(this.pictureBox_minimize);
             this.panel_header.Controls.Add(this.pictureBox_close);
+            this.panel_header.Controls.Add(this.label_betrecord);
             this.panel_header.Dock = System.Windows.Forms.DockStyle.Top;
             this.panel_header.Location = new System.Drawing.Point(0, 0);
             this.panel_header.Name = "panel_header";
@@ -769,6 +771,17 @@
             this.timer_close_message_box.Enabled = true;
             this.timer_close_message_box.Tick += new System.EventHandler(this.timer_close_message_box_Tick);
             // 
+            // label_betrecord
+            // 
+            this.label_betrecord.ForeColor = System.Drawing.Color.White;
+            this.label_betrecord.Location = new System.Drawing.Point(-1, 10);
+            this.label_betrecord.Name = "label_betrecord";
+            this.label_betrecord.Size = new System.Drawing.Size(570, 23);
+            this.label_betrecord.TabIndex = 3;
+            this.label_betrecord.Text = "-";
+            this.label_betrecord.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.label_betrecord.Visible = false;
+            // 
             // Main_Form
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -878,5 +891,6 @@
         private System.Windows.Forms.Timer timer_flush_memory;
         private System.Windows.Forms.Timer timer_bet_record;
         private System.Windows.Forms.Timer timer_close_message_box;
+        private System.Windows.Forms.Label label_betrecord;
     }
 }
