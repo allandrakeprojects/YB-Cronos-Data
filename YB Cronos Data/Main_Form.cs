@@ -304,11 +304,12 @@ namespace YB_Cronos_Data
 
                     if (!__is_start)
                     {
+                        label_status.Text = "Waiting";
+                        
                         if (Properties.Settings.Default.______start_detect == "0")
                         {
                             button_start.Enabled = false;
                             panel_filter.Enabled = false;
-                            label_status.Text = "Waiting";
                         }
                         // registration
                         else if (Properties.Settings.Default.______start_detect == "1")
@@ -892,6 +893,7 @@ namespace YB_Cronos_Data
                                         Type.Missing,
                                         true);
                     worksheet.Columns[5].NumberFormat = "MM/dd/yyyy";
+                    worksheet.Columns[2].NumberFormat = "@";
                     Excel.Range usedRange = worksheet.UsedRange;
                     Excel.Range rows = usedRange.Rows;
                     int count = 0;
@@ -1397,25 +1399,19 @@ namespace YB_Cronos_Data
                     string _month_ = DateTime.Now.Month.ToString();
                     string _year_ = DateTime.Now.Year.ToString();
                     string _year_month = _year_ + "-" + _month_;
-                    if (_fd_date != "" && _ld_date != "")
+                    string _current_month = DateTime.Now.ToString("MM/dd/yyyy");
+                    string _last_month = DateTime.Now.AddMonths(-1).ToString("yyyy-MM-dd");
+                    if (_fd_date == _current_month)
                     {
-                        DateTime _fd_date_ = DateTime.ParseExact(_fd_date, "MM/dd/yyyy", CultureInfo.InvariantCulture);
-                        DateTime _ld_date_ = DateTime.ParseExact(_ld_date, "yyyy-MM-dd", CultureInfo.InvariantCulture);
-
-                        var _last2months = DateTime.Today.AddMonths(-2);
-                        DateTime _last2months_ = DateTime.ParseExact(_last2months.ToString("yyyy-MM-dd"), "yyyy-MM-dd", CultureInfo.InvariantCulture);
-                        if (_ld_date_ >= _last2months_)
-                        {
-                            _retained = "Yes";
-                        }
-                        else
-                        {
-                            _retained = "No";
-                        }
+                        _retained = "Not Retained";
+                    }
+                    else if (_ld_date == _last_month)
+                    {
+                        _retained = "Not Retained";
                     }
                     else
                     {
-                        _retained = "No";
+                        _retained = "Not Retained";
                     }
                     // ----- New Based on Reg && Reg Month
                     string _reg_month = await ___TURNOVER_REGMONTHsync(_member.ToString());
@@ -1516,8 +1512,6 @@ namespace YB_Cronos_Data
                         File.Delete(_folder_path_result_xlsx);
                     }
                     
-                    _DATA.ToString().Reverse();
-
                     File.WriteAllText(_folder_path_result, _DATA.ToString(), Encoding.UTF8);
 
                     Excel.Application app = new Excel.Application();
@@ -1586,8 +1580,8 @@ namespace YB_Cronos_Data
                     comboBox_list.SelectedIndex = 0;
                     button_start.Enabled = false;
 
-                    SendITSupport("Reports has been completed.");
-                    SendReportsTeam("Reports has been completed.");
+                    //SendITSupport("Reports has been completed.");
+                    //SendReportsTeam("Reports has been completed.");
                 }
                 else
                 {
@@ -2130,7 +2124,6 @@ namespace YB_Cronos_Data
                     {
                         DateTime _submitted_date_replace = new DateTime(1970, 1, 1, 0, 0, 0, 0).AddSeconds(Math.Round(Convert.ToDouble(_submitted_date.ToString()) / 1000d)).ToLocalTime();
                         _submitted_date = _submitted_date_replace.ToString("yyyy-MM-dd HH:mm:ss");
-                        _month = _submitted_date_replace.ToString("yyyy-MM-01");
                     }
                     else
                     {
@@ -2143,6 +2136,7 @@ namespace YB_Cronos_Data
                     {
                         DateTime _updated_date_replace = new DateTime(1970, 1, 1, 0, 0, 0, 0).AddSeconds(Math.Round(Convert.ToDouble(_updated_date.ToString()) / 1000d)).ToLocalTime();
                         _updated_date = _updated_date_replace.ToString("yyyy-MM-dd HH:mm:ss");
+                        _month = _updated_date_replace.ToString("yyyy-MM-01");
                         _date = _updated_date_replace.ToString("yyyy-MM-dd");
                         _time = _updated_date_replace.ToString("yyyy-MM-dd HH:mm:ss");
                     }
@@ -2233,45 +2227,25 @@ namespace YB_Cronos_Data
                     string _reactivated = "";
                     if (_status.ToString() == "Approved" && !_member.ToString().ToLower().Contains("test"))
                     {
-                        if (_fd_date != "" && _ld_date != "")
+                        string _current_month = DateTime.Now.ToString("MM/dd/yyyy");
+                        string _last_month = DateTime.Now.AddMonths(-1).ToString("yyyy-MM-dd");
+                        if (_fd_date == _current_month)
                         {
-                            DateTime _fd_date_ = DateTime.ParseExact(_fd_date, "MM/dd/yyyy", CultureInfo.InvariantCulture);
-                            DateTime _ld_date_ = DateTime.ParseExact(_ld_date, "yyyy-MM-dd", CultureInfo.InvariantCulture);
-
-                            var _last2months = DateTime.Today.AddMonths(-2);
-                            DateTime _last2months_ = DateTime.ParseExact(_last2months.ToString("yyyy-MM-dd"), "yyyy-MM-dd", CultureInfo.InvariantCulture);
-                            if (_ld_date_ >= _last2months_)
-                            {
-                                _retained = "Retained";
-                            }
-                            else
-                            {
-                                _retained = "Not Retained";
-                            }
-
-                            string _month_ = DateTime.Now.Month.ToString();
-                            string _year_ = DateTime.Now.Year.ToString();
-                            string _year_month = _year_ + "-" + _month_;
-
-                            // new
-                            if (_fd_date_.ToString("yyyy-MM") == _year_month)
-                            {
-                                _new = "New";
-                            }
-                            else
-                            {
-                                _new = "Not New";
-                            }
-
-                            // reactivated
-                            if (_retained == "Not Retained" && _new == "Not New")
-                            {
-                                _reactivated = "Reactivated";
-                            }
-                            else
-                            {
-                                _reactivated = "Not Reactivated";
-                            }
+                            _retained = "Not Retained";
+                            _new = "New";
+                            _reactivated = "Not Reactivated";
+                        }
+                        else if (_ld_date == _last_month)
+                        {
+                            _retained = "Not Retained";
+                            _new = "New";
+                            _reactivated = "Not Reactivated";
+                        }
+                        else
+                        {
+                            _retained = "Not Retained";
+                            _new = "Not New";
+                            _reactivated = "Reactivated";
                         }
                     }
                     else
@@ -2459,7 +2433,6 @@ namespace YB_Cronos_Data
                     {
                         DateTime _submitted_date_replace = new DateTime(1970, 1, 1, 0, 0, 0, 0).AddSeconds(Math.Round(Convert.ToDouble(_submitted_date.ToString()) / 1000d)).ToLocalTime();
                         _submitted_date = _submitted_date_replace.ToString("yyyy-MM-dd HH:mm:ss");
-                        _month = _submitted_date_replace.ToString("yyyy-MM-01");
                     }
                     else
                     {
@@ -2472,6 +2445,7 @@ namespace YB_Cronos_Data
                     {
                         DateTime _updated_date_replace = new DateTime(1970, 1, 1, 0, 0, 0, 0).AddSeconds(Math.Round(Convert.ToDouble(_updated_date.ToString()) / 1000d)).ToLocalTime();
                         _updated_date = _updated_date_replace.ToString("yyyy-MM-dd HH:mm:ss");
+                        _month = _updated_date_replace.ToString("yyyy-MM-01");
                         _date = _updated_date_replace.ToString("yyyy-MM-dd");
                         _time = _updated_date_replace.ToString("yyyy-MM-dd HH:mm:ss");
                     }
@@ -2496,6 +2470,7 @@ namespace YB_Cronos_Data
                             DateTime _verified_date_replace = new DateTime(1970, 1, 1, 0, 0, 0, 0).AddSeconds(Math.Round(Convert.ToDouble(_verified_date.ToString()) / 1000d)).ToLocalTime();
                             _verified_date = _verified_date_replace.ToString("yyyy-MM-dd HH:mm:ss");
                             _updated_date = _verified_date.ToString();
+                            _month = _verified_date_replace.ToString("yyyy-MM-01");
                             _date = _verified_date_replace.ToString("yyyy-MM-dd");
                             _time = _verified_date_replace.ToString("yyyy-MM-dd HH:mm:ss");
                         }
@@ -3586,7 +3561,7 @@ namespace YB_Cronos_Data
 
         private void timer_detect_running_Tick(object sender, EventArgs e)
         {
-            ___DetectRunning();
+            //___DetectRunning();
         }
 
         private void ___DetectRunning()
