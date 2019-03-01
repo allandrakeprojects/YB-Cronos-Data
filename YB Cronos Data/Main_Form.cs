@@ -314,24 +314,32 @@ namespace YB_Cronos_Data
                         // registration
                         else if (Properties.Settings.Default.______start_detect == "1")
                         {
+                            label_status.Text = "Running";
+
                             comboBox_list.SelectedIndex = 0;
                             button_start.PerformClick();
                         }
                         // payment
                         else if (Properties.Settings.Default.______start_detect == "2")
                         {
+                            label_status.Text = "Running";
+
                             comboBox_list.SelectedIndex = 1;
                             button_start.PerformClick();
                         }
                         // bonus
                         else if (Properties.Settings.Default.______start_detect == "3")
                         {
+                            label_status.Text = "Running";
+
                             comboBox_list.SelectedIndex = 2;
                             button_start.PerformClick();
                         }
                         // turnover
                         else if (Properties.Settings.Default.______start_detect == "4")
                         {
+                            label_status.Text = "Running";
+
                             comboBox_list.SelectedIndex = 3;
                             button_start.PerformClick();
                         }
