@@ -5,6 +5,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Drawing;
@@ -13,6 +14,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -35,7 +37,6 @@ namespace YB_Cronos_Data
         private string __display_length = "100000";
         private int __send = 0;
         private int __timer_count = 10;
-        private bool __is_close;
         private bool __is_login = false;
         private bool __is_start = false;
         private bool __is_autostart = true;
@@ -205,7 +206,6 @@ namespace YB_Cronos_Data
             DialogResult dr = MessageBox.Show("Exit the program?", __brand_code + " Cronos Data", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
             if (dr == DialogResult.Yes)
             {
-                __is_close = false;
                 Environment.Exit(0);
             }
         }
@@ -250,7 +250,7 @@ namespace YB_Cronos_Data
                         panel_loader.Visible = false;
                         label_navigate_up.Enabled = false;
                         
-                        //SendITSupport("The application have been logout, please re-login again.");
+                        SendITSupport("The application have been logout, please re-login again.");
                         SendMyBot("The application have been logout, please re-login again.");
                         __send = 0;
                     }));
@@ -962,7 +962,7 @@ namespace YB_Cronos_Data
                 __send++;
                 if (__send == 5)
                 {
-                    //SendITSupport("There's a problem to the server, please re-open the application.");
+                    SendITSupport("There's a problem to the server, please re-open the application.");
                     SendMyBot(err.ToString());
 
                     Environment.Exit(0);
@@ -1280,7 +1280,7 @@ namespace YB_Cronos_Data
                 __send++;
                 if (__send == 5)
                 {
-                    //SendITSupport("There's a problem to the server, please re-open the application.");
+                    SendITSupport("There's a problem to the server, please re-open the application.");
                     SendMyBot(err.ToString());
 
                     Environment.Exit(0);
@@ -1613,7 +1613,7 @@ namespace YB_Cronos_Data
                 __send++;
                 if (__send == 5)
                 {
-                    //SendITSupport("There's a problem to the server, please re-open the application.");
+                    SendITSupport("There's a problem to the server, please re-open the application.");
                     SendMyBot(err.ToString());
 
                     Environment.Exit(0);
@@ -2360,7 +2360,7 @@ namespace YB_Cronos_Data
                 __send++;
                 if (__send == 5)
                 {
-                    //SendITSupport("There's a problem to the server, please re-open the application.");
+                    SendITSupport("There's a problem to the server, please re-open the application.");
                     SendMyBot(err.ToString());
 
                     Environment.Exit(0);
@@ -2495,6 +2495,9 @@ namespace YB_Cronos_Data
                         {
                             DateTime _verified_date_replace = new DateTime(1970, 1, 1, 0, 0, 0, 0).AddSeconds(Math.Round(Convert.ToDouble(_verified_date.ToString()) / 1000d)).ToLocalTime();
                             _verified_date = _verified_date_replace.ToString("yyyy-MM-dd HH:mm:ss");
+                            _updated_date = _verified_date.ToString();
+                            _date = _verified_date_replace.ToString("yyyy-MM-dd");
+                            _time = _verified_date_replace.ToString("yyyy-MM-dd HH:mm:ss");
                         }
                         else
                         {
@@ -2502,7 +2505,6 @@ namespace YB_Cronos_Data
                         }
 
                         end_date = DateTime.ParseExact(_verified_date.ToString(), "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
-                        _updated_date = _verified_date.ToString();
                     }
                     TimeSpan span = end_date - start_date;
                     double totalMinutes = Math.Floor(span.TotalMinutes);
@@ -2730,7 +2732,7 @@ namespace YB_Cronos_Data
                 __send++;
                 if (__send == 5)
                 {
-                    //SendITSupport("There's a problem to the server, please re-open the application.");
+                    SendITSupport("There's a problem to the server, please re-open the application.");
                     SendMyBot(err.ToString());
 
                     Environment.Exit(0);
@@ -3095,7 +3097,7 @@ namespace YB_Cronos_Data
                 __send++;
                 if (__send == 5)
                 {
-                    //SendITSupport("There's a problem to the server, please re-open the application.");
+                    SendITSupport("There's a problem to the server, please re-open the application.");
                     SendMyBot(err.ToString());
 
                     Environment.Exit(0);
@@ -3156,7 +3158,7 @@ namespace YB_Cronos_Data
             catch (Exception err)
             {
                 // comment
-                //SendITSupport("There's a problem to the server, please re-open the application.");
+                SendITSupport("There's a problem to the server, please re-open the application.");
                 SendMyBot(err.ToString());
                 
                 Environment.Exit(0);
@@ -3219,7 +3221,7 @@ namespace YB_Cronos_Data
             catch (Exception err)
             {
                 // comment
-                //SendITSupport("There's a problem to the server, please re-open the application.");
+                SendITSupport("There's a problem to the server, please re-open the application.");
                 SendMyBot(err.ToString());
                 
                 Environment.Exit(0);
@@ -3363,7 +3365,7 @@ namespace YB_Cronos_Data
                 string apiToken = "772918363:AAHn2ufmP3ocLEilQ1V-IHcqYMcSuFJHx5g";
                 string chatId = "@allandrake";
                 string text = "-----" + __brand_code + " " + __app + "-----%0A%0AIP:%20" + Properties.Settings.Default.______server_ip + "%0ALocation:%20" + Properties.Settings.Default.______server_location + "%0ADate%20and%20Time:%20[" + datetime + "]%0AMessage:%20" + message + "";
-                urlString = string.Format(urlString, apiToken, chatId, text);
+                urlString = String.Format(urlString, apiToken, chatId, text);
                 WebRequest request = WebRequest.Create(urlString);
                 Stream rs = request.GetResponse().GetResponseStream();
                 StreamReader reader = new StreamReader(rs);
@@ -3375,23 +3377,46 @@ namespace YB_Cronos_Data
                     if (line != null)
                         sb.Append(line);
                 }
-
-                __send = 0;
             }
             catch (Exception err)
             {
-                __send++;
-                if (__send == 5)
+                if (err.ToString().ToLower().Contains("hexadecimal"))
                 {
-                    //SendITSupport("There's a problem to the server, please re-open the application.");
-                    SendMyBot(err.ToString());
-
+                    string datetime = DateTime.Now.ToString("dd MMM HH:mm:ss");
+                    string urlString = "https://api.telegram.org/bot{0}/sendMessage?chat_id={1}&text={2}";
+                    string apiToken = "772918363:AAHn2ufmP3ocLEilQ1V-IHcqYMcSuFJHx5g";
+                    string chatId = "@allandrake";
+                    string text = "-----" + __brand_code + " " + __app + "-----%0A%0AIP:%20192.168.10.60%0ALocation:%20192.168.10.60%0ADate%20and%20Time:%20[" + datetime + "]%0AMessage:%20" + message + "";
+                    urlString = String.Format(urlString, apiToken, chatId, text);
+                    WebRequest request = WebRequest.Create(urlString);
+                    Stream rs = request.GetResponse().GetResponseStream();
+                    StreamReader reader = new StreamReader(rs);
+                    string line = "";
+                    StringBuilder sb = new StringBuilder();
+                    while (line != null)
+                    {
+                        line = reader.ReadLine();
+                        if (line != null)
+                            sb.Append(line);
+                    }
+                    
                     Environment.Exit(0);
                 }
                 else
                 {
-                    ___WaitNSeconds(10);
-                    SendMyBot(message);
+                    __send++;
+                    if (__send == 5)
+                    {
+                        SendITSupport("There's a problem to the server, please re-open the application.");
+                        SendMyBot(err.ToString());
+                        
+                        Environment.Exit(0);
+                    }
+                    else
+                    {
+                        ___WaitNSeconds(10);
+                        SendMyBot(message);
+                    }
                 }
             }
         }
@@ -3407,7 +3432,7 @@ namespace YB_Cronos_Data
                     string apiToken = "612187347:AAE9doWWcStpWrDrfpOod89qGSxCJ5JwQO4";
                     string chatId = "@it_support_ssi";
                     string text = "-----" + __brand_code + " " + __app + "-----%0A%0AIP:%20" + Properties.Settings.Default.______server_ip + "%0ALocation:%20" + Properties.Settings.Default.______server_location + "%0ADate%20and%20Time:%20[" + datetime + "]%0AMessage:%20" + message + "";
-                    urlString = string.Format(urlString, apiToken, chatId, text);
+                    urlString = String.Format(urlString, apiToken, chatId, text);
                     WebRequest request = WebRequest.Create(urlString);
                     Stream rs = request.GetResponse().GetResponseStream();
                     StreamReader reader = new StreamReader(rs);
@@ -3421,23 +3446,48 @@ namespace YB_Cronos_Data
                             sb.Append(line);
                         }
                     }
-
-                    __send = 0;
                 }
                 catch (Exception err)
                 {
-                    __send++;
-                    if (__send == 5)
+                    if (err.ToString().ToLower().Contains("hexadecimal"))
                     {
-                        //SendITSupport("There's a problem to the server, please re-open the application.");
-                        SendMyBot(err.ToString());
-
+                        string datetime = DateTime.Now.ToString("dd MMM HH:mm:ss");
+                        string urlString = "https://api.telegram.org/bot{0}/sendMessage?chat_id={1}&text={2}";
+                        string apiToken = "612187347:AAE9doWWcStpWrDrfpOod89qGSxCJ5JwQO4";
+                        string chatId = "@it_support_ssi";
+                        string text = "-----" + __brand_code + " " + __app + "-----%0A%0AIP:%20192.168.10.60%0ALocation:%20192.168.10.60%0ADate%20and%20Time:%20[" + datetime + "]%0AMessage:%20" + message + "";
+                        urlString = String.Format(urlString, apiToken, chatId, text);
+                        WebRequest request = WebRequest.Create(urlString);
+                        Stream rs = request.GetResponse().GetResponseStream();
+                        StreamReader reader = new StreamReader(rs);
+                        string line = "";
+                        StringBuilder sb = new StringBuilder();
+                        while (line != null)
+                        {
+                            line = reader.ReadLine();
+                            if (line != null)
+                            {
+                                sb.Append(line);
+                            }
+                        }
+                        
                         Environment.Exit(0);
                     }
                     else
                     {
-                        ___WaitNSeconds(10);
-                        SendITSupport(message);
+                        __send++;
+                        if (__send == 5)
+                        {
+                            SendITSupport("There's a problem to the server, please re-open the application.");
+                            SendMyBot(err.ToString());
+                            
+                            Environment.Exit(0);
+                        }
+                        else
+                        {
+                            ___WaitNSeconds(10);
+                            SendITSupport(message);
+                        }
                     }
                 }
             }
@@ -3472,7 +3522,7 @@ namespace YB_Cronos_Data
                 __send++;
                 if (__send == 5)
                 {
-                    //SendITSupport("There's a problem to the server, please re-open the application.");
+                    SendITSupport("There's a problem to the server, please re-open the application.");
                     SendMyBot(err.ToString());
 
                     Environment.Exit(0);
@@ -3531,6 +3581,105 @@ namespace YB_Cronos_Data
             while (DateTime.Now < _desired)
             {
                 Application.DoEvents();
+            }
+        }
+
+        private void timer_detect_running_Tick(object sender, EventArgs e)
+        {
+            ___DetectRunning();
+        }
+
+        private void ___DetectRunning()
+        {
+            try
+            {
+                string datetime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+                string password = __brand_code + datetime + "youdieidie";
+                byte[] encodedPassword = new UTF8Encoding().GetBytes(password);
+                byte[] hash = ((HashAlgorithm)CryptoConfig.CreateFromName("MD5")).ComputeHash(encodedPassword);
+                string token = BitConverter.ToString(hash)
+                   .Replace("-", string.Empty)
+                   .ToLower();
+
+                using (var wb = new WebClient())
+                {
+                    var data = new NameValueCollection
+                    {
+                        ["brand_code"] = __brand_code,
+                        ["app_type"] = __app_type,
+                        ["last_update"] = datetime,
+                        ["token"] = token
+                    };
+
+                    var response = wb.UploadValues("http://192.168.10.252:8080/API/updateAppStatus", "POST", data);
+                    string responseInString = Encoding.UTF8.GetString(response);
+                }
+            }
+            catch (Exception err)
+            {
+                if (__is_login)
+                {
+                    __send++;
+                    if (__send == 5)
+                    {
+                        SendITSupport("There's a problem to the server, please re-open the application.");
+                        SendMyBot(err.ToString());
+                        
+                        Environment.Exit(0);
+                    }
+                    else
+                    {
+                        ___WaitNSeconds(10);
+                        ___DetectRunning2();
+                    }
+                }
+            }
+        }
+
+        private void ___DetectRunning2()
+        {
+            try
+            {
+                string datetime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+                string password = __brand_code + datetime + "youdieidie";
+                byte[] encodedPassword = new UTF8Encoding().GetBytes(password);
+                byte[] hash = ((HashAlgorithm)CryptoConfig.CreateFromName("MD5")).ComputeHash(encodedPassword);
+                string token = BitConverter.ToString(hash)
+                   .Replace("-", string.Empty)
+                   .ToLower();
+
+                using (var wb = new WebClient())
+                {
+                    var data = new NameValueCollection
+                    {
+                        ["brand_code"] = __brand_code,
+                        ["app_type"] = __app_type,
+                        ["last_update"] = datetime,
+                        ["token"] = token
+                    };
+
+                    var response = wb.UploadValues("http://zeus.ssitex.com:8080/API/updateAppStatus", "POST", data);
+                    string responseInString = Encoding.UTF8.GetString(response);
+                }
+            }
+            catch (Exception err)
+            {
+                if (__is_login)
+                {
+                    __send++;
+                    if (__send == 5)
+                    {
+                        SendITSupport("There's a problem to the server, please re-open the application.");
+                        SendMyBot(err.ToString());
+                        
+                        Environment.Exit(0);
+                    }
+                    else
+                    {
+                        ___WaitNSeconds(10);
+                        ___DetectRunning();
+                    }
+                }
             }
         }
     }

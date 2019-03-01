@@ -35,6 +35,7 @@
             this.label_title = new System.Windows.Forms.Label();
             this.pictureBox_minimize = new System.Windows.Forms.PictureBox();
             this.pictureBox_close = new System.Windows.Forms.PictureBox();
+            this.label_betrecord = new System.Windows.Forms.Label();
             this.label_title_yb = new System.Windows.Forms.Label();
             this.panel_yb = new System.Windows.Forms.Panel();
             this.panel_cefsharp = new System.Windows.Forms.Panel();
@@ -91,7 +92,7 @@
             this.timer_flush_memory = new System.Windows.Forms.Timer(this.components);
             this.timer_bet_record = new System.Windows.Forms.Timer(this.components);
             this.timer_close_message_box = new System.Windows.Forms.Timer(this.components);
-            this.label_betrecord = new System.Windows.Forms.Label();
+            this.timer_detect_running = new System.Windows.Forms.Timer(this.components);
             this.panel_header.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox_minimize)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox_close)).BeginInit();
@@ -174,6 +175,17 @@
             this.pictureBox_close.TabStop = false;
             this.pictureBox_close.Visible = false;
             this.pictureBox_close.Click += new System.EventHandler(this.pictureBox_close_Click);
+            // 
+            // label_betrecord
+            // 
+            this.label_betrecord.ForeColor = System.Drawing.Color.White;
+            this.label_betrecord.Location = new System.Drawing.Point(-1, 10);
+            this.label_betrecord.Name = "label_betrecord";
+            this.label_betrecord.Size = new System.Drawing.Size(570, 23);
+            this.label_betrecord.TabIndex = 3;
+            this.label_betrecord.Text = "-";
+            this.label_betrecord.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.label_betrecord.Visible = false;
             // 
             // label_title_yb
             // 
@@ -771,16 +783,11 @@
             this.timer_close_message_box.Enabled = true;
             this.timer_close_message_box.Tick += new System.EventHandler(this.timer_close_message_box_Tick);
             // 
-            // label_betrecord
+            // timer_detect_running
             // 
-            this.label_betrecord.ForeColor = System.Drawing.Color.White;
-            this.label_betrecord.Location = new System.Drawing.Point(-1, 10);
-            this.label_betrecord.Name = "label_betrecord";
-            this.label_betrecord.Size = new System.Drawing.Size(570, 23);
-            this.label_betrecord.TabIndex = 3;
-            this.label_betrecord.Text = "-";
-            this.label_betrecord.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            this.label_betrecord.Visible = false;
+            this.timer_detect_running.Enabled = true;
+            this.timer_detect_running.Interval = 60000;
+            this.timer_detect_running.Tick += new System.EventHandler(this.timer_detect_running_Tick);
             // 
             // Main_Form
             // 
@@ -892,5 +899,6 @@
         private System.Windows.Forms.Timer timer_bet_record;
         private System.Windows.Forms.Timer timer_close_message_box;
         private System.Windows.Forms.Label label_betrecord;
+        private System.Windows.Forms.Timer timer_detect_running;
     }
 }
