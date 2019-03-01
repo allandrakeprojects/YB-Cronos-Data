@@ -304,12 +304,12 @@ namespace YB_Cronos_Data
 
                     if (!__is_start)
                     {
-                        label_status.Text = "Waiting";
-                        
                         if (Properties.Settings.Default.______start_detect == "0")
                         {
                             button_start.Enabled = false;
                             panel_filter.Enabled = false;
+
+                            label_status.Text = "Waiting";
                         }
                         // registration
                         else if (Properties.Settings.Default.______start_detect == "1")
