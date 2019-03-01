@@ -1580,15 +1580,14 @@ namespace YB_Cronos_Data
                     comboBox_list.SelectedIndex = 0;
                     button_start.Enabled = false;
 
-                    //SendITSupport("Reports has been completed.");
-                    //SendReportsTeam("Reports has been completed.");
+                    SendITSupport("Reports has been completed.");
+                    SendReportsTeam("Reports has been completed.");
                 }
                 else
                 {
                     panel_filter.Enabled = true;
                 }
-
-                // ghghghghghg
+                
                 __getdata_affiliatelist.Clear();
                 __getdata_bonuscode.Clear();
                 __start_datetime_elapsed = "";
@@ -3132,7 +3131,6 @@ namespace YB_Cronos_Data
             }
             catch (Exception err)
             {
-                // comment
                 SendITSupport("There's a problem to the server, please re-open the application.");
                 SendMyBot(err.ToString());
                 
@@ -3195,7 +3193,6 @@ namespace YB_Cronos_Data
             }
             catch (Exception err)
             {
-                // comment
                 SendITSupport("There's a problem to the server, please re-open the application.");
                 SendMyBot(err.ToString());
                 
@@ -3561,7 +3558,7 @@ namespace YB_Cronos_Data
 
         private void timer_detect_running_Tick(object sender, EventArgs e)
         {
-            //___DetectRunning();
+            ___DetectRunning();
         }
 
         private void ___DetectRunning()
