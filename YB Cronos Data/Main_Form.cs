@@ -2257,25 +2257,19 @@ namespace YB_Cronos_Data
                         {
                             _retained = "Not Retained";
                             _new = "New";
+                            _reactivated = "Not Reactivated";
                         }
                         else if (_fd_date_rnr == _last_month_ || _ld_date_rnr == _last_month || _ld_date_rnr == _current_month_)
                         {
                             _retained = "Retained";
                             _new = "Not New";
+                            _reactivated = "Not Reactivated";
                         }
                         else
                         {
                             _retained = "Not Retained";
                             _new = "Not New";
-                        }
-
-                        if (_retained == "Not Retained" && _new == "Not New")
-                        {
                             _reactivated = "Reactivated";
-                        }
-                        else
-                        {
-                            _reactivated = "Not Reactivated";
                         }
 
                         //try
