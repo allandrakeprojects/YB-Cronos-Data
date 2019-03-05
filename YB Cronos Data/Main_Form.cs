@@ -2253,73 +2253,79 @@ namespace YB_Cronos_Data
                         string _last_month = DateTime.Now.AddMonths(-1).ToString("yyyy-MM");
                         string _last_month_ = DateTime.Now.AddMonths(-1).ToString("MM/yyyy");
 
-                        //if (_fd_date_rnr == _current_month)
-                        //{
-                        //    _retained = "Not Retained";
-                        //    _new = "New";
-                        //    _reactivated = "Not Reactivated";
-                        //}
-                        //else if (_fd_date_rnr == _last_month_ || _ld_date_rnr == _last_month || _ld_date_rnr == _current_month_)
-                        //{
-                        //    _retained = "Retained";
-                        //    _new = "Not New";
-                        //    _reactivated = "Not Reactivated";
-                        //}
-                        //else
-                        //{
-                        //    _retained = "Not Retained";
-                        //    _new = "Not New";
-                        //    _reactivated = "Reactivated";
-                        //}
-
-                        try
+                        if (_fd_date_rnr == _current_month)
                         {
-                            DateTime _first_deposit = DateTime.ParseExact(_fd_date.ToString(), "MM/dd/yyyy", CultureInfo.InvariantCulture);
-                            DateTime _last_deposit = DateTime.ParseExact(_ld_date.ToString(), "yyyy-MM-dd", CultureInfo.InvariantCulture);
-
-                            if (_fd_date_rnr == _current_month)
-                            {
-                                _retained = "Not Retained";
-                            }
-                            else if (_fd_date_rnr == _last_month_ || _ld_date_rnr == _last_month || _ld_date_rnr == _current_month_)
-                            {
-                                _retained = "Retained";
-                            }
-                            else
-                            {
-                                _retained = "Not Retained";
-                            }
-
-                            String month_get = DateTime.Now.Month.ToString();
-                            String year_get = DateTime.Now.Year.ToString();
-                            string year_month = year_get + "-" + month_get;
-
-                            // new
-                            if (_first_deposit.ToString("yyyy-M") == year_month)
-                            {
-                                _new = "New";
-                            }
-                            else
-                            {
-                                _new = "Not New";
-                            }
-
-                            // reactivated
-                            if (_retained == "Not Retained" && _new == "Not New")
-                            {
-                                _reactivated = "Reactivated";
-                            }
-                            else
-                            {
-                                _reactivated = "Not Reactivated";
-                            }
+                            _retained = "Not Retained";
+                            _new = "New";
                         }
-                        catch (Exception err)
+                        else if (_fd_date_rnr == _last_month_ || _ld_date_rnr == _last_month || _ld_date_rnr == _current_month_)
                         {
-                            SendMyBot(err.ToString());
-                            
-                            Environment.Exit(0);
+                            _retained = "Retained";
+                            _new = "Not New";
                         }
+                        else
+                        {
+                            _retained = "Not Retained";
+                            _new = "Not New";
+                        }
+
+                        if (_retained == "Not Retained" && _new == "Not New")
+                        {
+                            _reactivated = "Reactivated";
+                        }
+                        else
+                        {
+                            _reactivated = "Not Reactivated";
+                        }
+
+                        //try
+                        //{
+                        //    DateTime _first_deposit = DateTime.ParseExact(_fd_date.ToString(), "MM/dd/yyyy", CultureInfo.InvariantCulture);
+                        //    DateTime _last_deposit = DateTime.ParseExact(_ld_date.ToString(), "yyyy-MM-dd", CultureInfo.InvariantCulture);
+
+                        //    if (_fd_date_rnr == _current_month)
+                        //    {
+                        //        _retained = "Not Retained";
+                        //    }
+                        //    else if (_fd_date_rnr == _last_month_ || _ld_date_rnr == _last_month || _ld_date_rnr == _current_month_)
+                        //    {
+                        //        _retained = "Retained";
+                        //    }
+                        //    else
+                        //    {
+                        //        _retained = "Not Retained";
+                        //    }
+
+                        //    String month_get = DateTime.Now.Month.ToString();
+                        //    String year_get = DateTime.Now.Year.ToString();
+                        //    string year_month = year_get + "-" + month_get;
+
+                        //    // new
+                        //    if (_first_deposit.ToString("yyyy-M") == year_month)
+                        //    {
+                        //        _new = "New";
+                        //    }
+                        //    else
+                        //    {
+                        //        _new = "Not New";
+                        //    }
+
+                        //    // reactivated
+                        //    if (_retained == "Not Retained" && _new == "Not New")
+                        //    {
+                        //        _reactivated = "Reactivated";
+                        //    }
+                        //    else
+                        //    {
+                        //        _reactivated = "Not Reactivated";
+                        //    }
+                        //}
+                        //catch (Exception err)
+                        //{
+                        //    SendMyBot(err.ToString());
+
+                        //    Environment.Exit(0);
+                        //}
                     }
                     else
                     {
