@@ -513,7 +513,7 @@ namespace YB_Cronos_Data
             DateTime today = DateTime.Now;
             DateTime date = today.AddDays(1);
             Properties.Settings.Default.______midnight_time = date.ToString("yyyy-MM-dd 00:30");
-            Properties.Settings.Default.______start_detect = "2";
+            Properties.Settings.Default.______start_detect = "0";
             Properties.Settings.Default.Save();
         }
 
