@@ -550,13 +550,22 @@ namespace YB_Cronos_Data
                     label_cycle_in.Text = timeRemaining.Minutes + " min(s) " + timeRemaining.Seconds + " sec(s)";
                 }
 
-                if (label_cycle_in.Text.Contains("-"))
+                if (Properties.Settings.Default.______midnight_time != "")
                 {
-                    panel_yb.Enabled = false;
-                }
-                else
-                {
-                    panel_yb.Enabled = true;
+                    if (label_cycle_in.Text.Contains("-"))
+                    {
+                        panel_yb.Enabled = false;
+
+                        DateTime today = DateTime.Now;
+                        DateTime date = today.AddDays(1);
+                        Properties.Settings.Default.______midnight_time = date.ToString("yyyy-MM-dd 00:30");
+                        Properties.Settings.Default.______start_detect = "1";
+                        Properties.Settings.Default.Save();
+                    }
+                    else
+                    {
+                        panel_yb.Enabled = true;
+                    }
                 }
             }
         }
@@ -1575,10 +1584,10 @@ namespace YB_Cronos_Data
                     app.Quit();
                     Marshal.ReleaseComObject(app);
 
-                    if (File.Exists(_folder_path_result))
-                    {
-                        File.Delete(_folder_path_result);
-                    }
+                    //if (File.Exists(_folder_path_result))
+                    //{
+                    //    File.Delete(_folder_path_result);
+                    //}
 
                     _DATA.Clear();
                 }
@@ -1597,7 +1606,7 @@ namespace YB_Cronos_Data
                     comboBox_list.SelectedIndex = 0;
                     button_start.Enabled = false;
 
-                    SendITSupport("Reports has been completed.");
+                    //SendITSupport("Reports has been completed.");
                     SendReportsTeam("Reports has been completed.");
                 }
                 else
@@ -2248,28 +2257,77 @@ namespace YB_Cronos_Data
                     string _reactivated = "";
                     if (_status.ToString() == "Approved" && !_member.ToString().ToLower().Contains("test"))
                     {
-                        string _current_month = DateTime.Now.ToString("MM/yyyy");
-                        string _current_month_ = DateTime.Now.ToString("yyyy-MM");
-                        string _last_month = DateTime.Now.AddMonths(-1).ToString("yyyy-MM");
-                        string _last_month_ = DateTime.Now.AddMonths(-1).ToString("MM/yyyy");
+                        //if (_fd_date_rnr == _current_month)
+                        //{
+                        //    _retained = "Not Retained";
+                        //    _new = "New";
+                        //    _reactivated = "Not Reactivated";
+                        //}
+                        //else if (_fd_date_rnr == _last_month_ || _ld_date_rnr == _last_month || _ld_date_rnr == _current_month_)
+                        //{
+                        //    _retained = "Retained";
+                        //    _new = "Not New";
+                        //    _reactivated = "Not Reactivated";
+                        //}
+                        //else
+                        //{
+                        //    _retained = "Not Retained";
+                        //    _new = "Not New";
+                        //    _reactivated = "Reactivated";
+                        //}
 
-                        if (_fd_date_rnr == _current_month)
+                        try
                         {
-                            _retained = "Not Retained";
-                            _new = "New";
-                            _reactivated = "Not Reactivated";
+                            DateTime _first_deposit = DateTime.ParseExact(_fd_date.ToString(), "MM/dd/yyyy", CultureInfo.InvariantCulture);
+                            DateTime _last_deposit = DateTime.ParseExact(_ld_date.ToString(), "yyyy-MM-dd", CultureInfo.InvariantCulture);
+                            string _current_month = DateTime.Now.ToString("MM/yyyy");
+                            string _current_month_ = DateTime.Now.ToString("yyyy-MM");
+                            string _last_month = DateTime.Now.AddMonths(-1).ToString("yyyy-MM");
+                            string _last_month_ = DateTime.Now.AddMonths(-1).ToString("MM/yyyy");
+
+                            if (_fd_date_rnr == _current_month)
+                            {
+                                _retained = "Not Retained";
+                            }
+                            else if (_fd_date_rnr == _last_month_ || _ld_date_rnr == _last_month || _ld_date_rnr == _current_month_)
+                            {
+                                _retained = "Retained";
+                            }
+                            else
+                            {
+                                _retained = "Not Retained";
+                            }
+
+                            String month_get = DateTime.Now.Month.ToString();
+                            String year_get = DateTime.Now.Year.ToString();
+                            string year_month = year_get + "-" + month_get;
+                            
+                            if (_first_deposit.ToString("yyyy-M") == year_month)
+                            {
+                                _new = "New";
+                            }
+                            else
+                            {
+                                _new = "Not New";
+                            }
+
+                            if (Convert.ToDouble(_amount.ToString()) < 0)
+                            {
+                                _retained = "Not Retained";
+                            }
+
+                            if (_retained == "Not Retained" && _new == "Not New")
+                            {
+                                _reactivated = "Reactivated";
+                            }
+                            else
+                            {
+                                _reactivated = "Not Reactivated";
+                            }
                         }
-                        else if (_fd_date_rnr == _last_month_ || _ld_date_rnr == _last_month || _ld_date_rnr == _current_month_)
+                        catch (Exception err)
                         {
-                            _retained = "Retained";
-                            _new = "Not New";
-                            _reactivated = "Not Reactivated";
-                        }
-                        else
-                        {
-                            _retained = "Not Retained";
-                            _new = "Not New";
-                            _reactivated = "Reactivated";
+                            SendMyBot(err.ToString());
                         }
                     }
                     else
