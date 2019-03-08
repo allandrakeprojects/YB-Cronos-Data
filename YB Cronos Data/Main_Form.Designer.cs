@@ -704,7 +704,7 @@
             // timer_midnight
             // 
             this.timer_midnight.Enabled = true;
-            this.timer_midnight.Interval = 10000;
+            this.timer_midnight.Interval = 1000;
             this.timer_midnight.Tick += new System.EventHandler(this.timer_midnight_Tick);
             // 
             // panel_landing
