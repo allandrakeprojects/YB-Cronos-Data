@@ -560,6 +560,13 @@ namespace YB_Cronos_Data
                     Properties.Settings.Default.______start_detect = "1";
                     Properties.Settings.Default.Save();
                 }
+                else
+                {
+                    if (label_getdatacount.Visible == false)
+                    {
+                        panel_yb.Enabled = true;
+                    }
+                }
             }
         }
 
@@ -3301,6 +3308,7 @@ namespace YB_Cronos_Data
                         Properties.Settings.Default.______midnight_time = "";
                         Properties.Settings.Default.Save();
 
+                        label_getdatacount.Visible = true;
                         __getdata_affiliatelist.Clear();
                         __getdata_bonuscode.Clear();
                         ___GETDATA_AFFILIATELIST();
