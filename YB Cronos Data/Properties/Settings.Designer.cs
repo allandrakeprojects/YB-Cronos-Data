@@ -74,12 +74,24 @@ namespace YB_Cronos_Data.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("0")]
-        public int ______bet_record {
+        public int ______betto_record {
             get {
-                return ((int)(this["______bet_record"]));
+                return ((int)(this["______betto_record"]));
             }
             set {
-                this["______bet_record"] = value;
+                this["______betto_record"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("06")]
+        public string ______betto_record_time {
+            get {
+                return ((string)(this["______betto_record_time"]));
+            }
+            set {
+                this["______betto_record_time"] = value;
             }
         }
     }

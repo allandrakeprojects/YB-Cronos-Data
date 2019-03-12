@@ -14,8 +14,11 @@
     <Setting Name="______server_location" Type="System.String" Scope="User">
       <Value Profile="(Default)">Robinsons Summit</Value>
     </Setting>
-    <Setting Name="______bet_record" Type="System.Int32" Scope="User">
+    <Setting Name="______betto_record" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">0</Value>
+    </Setting>
+    <Setting Name="______betto_record_time" Type="System.String" Scope="User">
+      <Value Profile="(Default)">06</Value>
     </Setting>
   </Settings>
 </SettingsFile>
