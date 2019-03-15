@@ -85,7 +85,7 @@ namespace YB_Cronos_Data.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("06")]
+        [global::System.Configuration.DefaultSettingValueAttribute("04")]
         public string ______betto_record_time {
             get {
                 return ((string)(this["______betto_record_time"]));

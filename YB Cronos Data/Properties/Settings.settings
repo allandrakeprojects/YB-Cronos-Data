@@ -18,7 +18,7 @@
       <Value Profile="(Default)">0</Value>
     </Setting>
     <Setting Name="______betto_record_time" Type="System.String" Scope="User">
-      <Value Profile="(Default)">06</Value>
+      <Value Profile="(Default)">04</Value>
     </Setting>
   </Settings>
 </SettingsFile>

@@ -186,6 +186,7 @@
             this.label_bettorecord.Text = "-";
             this.label_bettorecord.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             this.label_bettorecord.Visible = false;
+            this.label_bettorecord.MouseDown += new System.Windows.Forms.MouseEventHandler(this.label_bettorecord_MouseDown);
             // 
             // label_title_yb
             // 

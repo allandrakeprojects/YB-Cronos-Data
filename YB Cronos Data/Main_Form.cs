@@ -196,6 +196,15 @@ namespace YB_Cronos_Data
             }
         }
 
+        private void label_bettorecord_MouseDown(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Left)
+            {
+                ReleaseCapture();
+                SendMessage(Handle, WM_NCLBUTTONDOWN, HT_CAPTION, 0);
+            }
+        }
+
         private void pictureBox_minimize_Click(object sender, EventArgs e)
         {
             WindowState = FormWindowState.Minimized;
@@ -768,7 +777,9 @@ namespace YB_Cronos_Data
                         }
                     }
                     // -----
-                    string _fd_date = await ___REGISTRATION_FIRSTDEPOSITAsync(_username.ToString());
+                    string _fd_ld_date = await ___REGISTRATION_FIRSTLASTDEPOSITREGMONTHAsync(_username.ToString());
+                    string[] _fd_ld_date_replace = _fd_ld_date.Split('|');
+                    string _fd_date = _fd_ld_date_replace[0];
                     string _first_fd_month = "";
                     if (_fd_date != "")
                     {
@@ -1386,8 +1397,11 @@ namespace YB_Cronos_Data
                     // -----
                     JToken _date = _jo.SelectToken("$.aaData[" + i + "].summaryDate").ToString();
 
-                    string _fd_date = await ___REGISTRATION_FIRSTDEPOSITAsync(_member.ToString());
-                    string _ld_date = await ___REGISTRATION_LASTDEPOSITAsync(_member.ToString());
+                    string _fd_ld_date = await ___REGISTRATION_FIRSTLASTDEPOSITREGMONTHAsync(_member.ToString());
+                    string[] _fd_ld_date_replace = _fd_ld_date.Split('|');
+                    string _fd_date = _fd_ld_date_replace[0];
+                    string _ld_date = _fd_ld_date_replace[1];
+                    string _reg_month = _fd_ld_date_replace[2];
                     string _fd_date_rnr = "";
                     string _ld_date_rnr = "";
                     if (_fd_date != "")
@@ -1433,7 +1447,6 @@ namespace YB_Cronos_Data
                         _retained = "Not Retained";
                     }
                     // ----- New Based on Reg && Reg Month
-                    string _reg_month = await ___TURNOVER_REGMONTHsync(_member.ToString());
                     string _month = "";
                     string _new_based_on_reg = "";
                     if (_reg_month != "")
@@ -1490,7 +1503,7 @@ namespace YB_Cronos_Data
                     _DATA.AppendLine(data);
                 }
 
-                if (__jo_count.ToString() != "0")
+                if (_jo_count.ToString() != "0")
                 {
                     // TURNOVER SAVING TO EXCEL
                     string _current_datetime = DateTime.Now.ToString("yyyy-MM-dd");
@@ -1585,9 +1598,8 @@ namespace YB_Cronos_Data
 
                     _DATA.Clear();
                 }
-
-                label_bettorecord.Visible = false;
-                label_bettorecord.Text = "";
+                
+                label_bettorecord.Text = "-";
                 await ___BETAsync();
                 
                 __send = 0;
@@ -1740,10 +1752,11 @@ namespace YB_Cronos_Data
                         string _create_time = "";
 
                         _display_count++;
-                        label_bettorecord.Text = "Bet Record: " + _display_count.ToString("N0") + " of " + rowCount.ToString("N0");
+                        label_bettorecord.Text = "Bet Record: " + _display_count.ToString("N0") + " of " + (rowCount-1).ToString("N0");
                         string _details = "";
                         for (int j = 1; j <= colCount; j++)
                         {
+                            Application.DoEvents();
                             count_++;
 
                             try
@@ -1894,6 +1907,7 @@ namespace YB_Cronos_Data
 
                 label_status.Text = "Waiting";
                 SendReportsTeam("Bet and Turnover Record Completed.");
+                __getdata_regdetails.Clear();
                 label_bettorecord.Visible = false;
                 label_bettorecord.Text = "-";
                 
@@ -1908,45 +1922,110 @@ namespace YB_Cronos_Data
             }
         }
 
-        private async Task<string> ___REGISTRATION_FIRSTDEPOSITAsync(string username)
+        List<string> __getdata_regdetails = new List<string>();
+        private async Task<string> ___REGISTRATION_FIRSTLASTDEPOSITREGMONTHAsync(string username)
         {
-            var cookie_manager = Cef.GetGlobalCookieManager();
-            var visitor = new CookieCollector();
-            cookie_manager.VisitUrlCookies(__url, true, visitor);
-            var cookies = await visitor.Task;
-            var cookie = CookieCollector.GetCookieHeader(cookies);
-            WebClient wc = new WebClient();
-            wc.Headers.Add("Cookie", cookie);
-            wc.Encoding = Encoding.UTF8;
-            wc.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
+            if (__getdata_regdetails.Count == 0)
+            {
+                var cookie_manager = Cef.GetGlobalCookieManager();
+                var visitor = new CookieCollector();
+                cookie_manager.VisitUrlCookies(__url, true, visitor);
+                var cookies = await visitor.Task;
+                var cookie = CookieCollector.GetCookieHeader(cookies);
+                WebClient wc = new WebClient();
+                wc.Headers.Add("Cookie", cookie);
+                wc.Encoding = Encoding.UTF8;
+                wc.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
 
-            byte[] result = await wc.DownloadDataTaskAsync(__root_url + "/manager/member/getProfileOverview?userId=" + username);
-            string responsebody = Encoding.UTF8.GetString(result);
-            var deserialize_object = JsonConvert.DeserializeObject(responsebody);
-            JObject _jo = JObject.Parse(deserialize_object.ToString());
-            JToken _fd_date_time = _jo.SelectToken("$.firstDepositTime").ToString();
-            return _fd_date_time.ToString();
-        }
-        
-        private async Task<string> ___REGISTRATION_LASTDEPOSITAsync(string username)
-        {
-            var cookie_manager = Cef.GetGlobalCookieManager();
-            var visitor = new CookieCollector();
-            cookie_manager.VisitUrlCookies(__url, true, visitor);
-            var cookies = await visitor.Task;
-            var cookie = CookieCollector.GetCookieHeader(cookies);
-            WebClient wc = new WebClient();
-            wc.Headers.Add("Cookie", cookie);
-            wc.Encoding = Encoding.UTF8;
-            wc.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
+                byte[] result = await wc.DownloadDataTaskAsync(__root_url + "/manager/member/getProfileOverview?userId=" + username);
+                string responsebody = Encoding.UTF8.GetString(result);
+                var deserialize_object = JsonConvert.DeserializeObject(responsebody);
+                JObject _jo = JObject.Parse(deserialize_object.ToString());
+                JToken _fd_date_time = _jo.SelectToken("$.firstDepositTime").ToString();
+                JToken _ld_date_time = _jo.SelectToken("$.lastDepositTime").ToString();
+                JToken _reg_month = _jo.SelectToken("$.createTime").ToString();
+                __getdata_regdetails.Add(username + "|" + _fd_date_time.ToString() + "|" + _ld_date_time.ToString() + "|" + _reg_month.ToString());
+                return _fd_date_time.ToString() + "|" + _ld_date_time.ToString() + "|" + _reg_month.ToString();
+            }
+            else
+            {
+                bool _is_search = false;
+                for (var i = 0; i < __getdata_regdetails.Count; i++)
+                {
+                    string[] __getdata_regdetails_replace = __getdata_regdetails[i].Split('|');
+                    if (__getdata_regdetails_replace[0] == username)
+                    {
+                        _is_search = true;
+                        return __getdata_regdetails_replace[1] + "|" + __getdata_regdetails_replace[2] + "|" + __getdata_regdetails_replace[3];
+                    }
+                }
 
-            byte[] result = await wc.DownloadDataTaskAsync(__root_url + "/manager/member/getProfileOverview?userId=" + username);
-            string responsebody = Encoding.UTF8.GetString(result);
-            var deserialize_object = JsonConvert.DeserializeObject(responsebody);
-            JObject _jo = JObject.Parse(deserialize_object.ToString());
-            JToken _ld_date_time = _jo.SelectToken("$.lastDepositTime").ToString();
-            return _ld_date_time.ToString();
+                if (!_is_search)
+                {
+                    var cookie_manager = Cef.GetGlobalCookieManager();
+                    var visitor = new CookieCollector();
+                    cookie_manager.VisitUrlCookies(__url, true, visitor);
+                    var cookies = await visitor.Task;
+                    var cookie = CookieCollector.GetCookieHeader(cookies);
+                    WebClient wc = new WebClient();
+                    wc.Headers.Add("Cookie", cookie);
+                    wc.Encoding = Encoding.UTF8;
+                    wc.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
+
+                    byte[] result = await wc.DownloadDataTaskAsync(__root_url + "/manager/member/getProfileOverview?userId=" + username);
+                    string responsebody = Encoding.UTF8.GetString(result);
+                    var deserialize_object = JsonConvert.DeserializeObject(responsebody);
+                    JObject _jo = JObject.Parse(deserialize_object.ToString());
+                    JToken _fd_date_time = _jo.SelectToken("$.firstDepositTime").ToString();
+                    JToken _ld_date_time = _jo.SelectToken("$.lastDepositTime").ToString();
+                    JToken _reg_month = _jo.SelectToken("$.createTime").ToString();
+                    __getdata_regdetails.Add(username + "|" + _fd_date_time.ToString() + "|" + _ld_date_time.ToString() + "|" + _reg_month.ToString());
+                    return _fd_date_time.ToString() + "|" + _ld_date_time.ToString() + "|" + _reg_month.ToString();
+                }
+            }
+            
+            return null;
         }
+
+        //private async Task<string> ___REGISTRATION_LASTDEPOSITAsync(string username)
+        //{
+        //    var cookie_manager = Cef.GetGlobalCookieManager();
+        //    var visitor = new CookieCollector();
+        //    cookie_manager.VisitUrlCookies(__url, true, visitor);
+        //    var cookies = await visitor.Task;
+        //    var cookie = CookieCollector.GetCookieHeader(cookies);
+        //    WebClient wc = new WebClient();
+        //    wc.Headers.Add("Cookie", cookie);
+        //    wc.Encoding = Encoding.UTF8;
+        //    wc.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
+
+        //    byte[] result = await wc.DownloadDataTaskAsync(__root_url + "/manager/member/getProfileOverview?userId=" + username);
+        //    string responsebody = Encoding.UTF8.GetString(result);
+        //    var deserialize_object = JsonConvert.DeserializeObject(responsebody);
+        //    JObject _jo = JObject.Parse(deserialize_object.ToString());
+        //    JToken _ld_date_time = _jo.SelectToken("$.lastDepositTime").ToString();
+        //    return _ld_date_time.ToString();
+        //}
+
+        //private async Task<string> ___TURNOVER_REGMONTHsync(string username)
+        //{
+        //    var cookie_manager = Cef.GetGlobalCookieManager();
+        //    var visitor = new CookieCollector();
+        //    cookie_manager.VisitUrlCookies(__url, true, visitor);
+        //    var cookies = await visitor.Task;
+        //    var cookie = CookieCollector.GetCookieHeader(cookies);
+        //    WebClient wc = new WebClient();
+        //    wc.Headers.Add("Cookie", cookie);
+        //    wc.Encoding = Encoding.UTF8;
+        //    wc.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
+
+        //    byte[] result = await wc.DownloadDataTaskAsync(__root_url + "/manager/member/getProfileOverview?userId=" + username);
+        //    string responsebody = Encoding.UTF8.GetString(result);
+        //    var deserialize_object = JsonConvert.DeserializeObject(responsebody);
+        //    JObject _jo = JObject.Parse(deserialize_object.ToString());
+        //    JToken _reg_month = _jo.SelectToken("$.createTime").ToString();
+        //    return _reg_month.ToString();
+        //}
 
         private async Task<string> ___PAYMENT_REMARKAsync(string id)
         {
@@ -1968,26 +2047,6 @@ namespace YB_Cronos_Data
             string _payment_remark_replace = Regex.Replace(_payment_remark.ToString(), @"\t|\n|\r", "");
             _payment_remark = _payment_remark_replace;
             return _payment_remark.ToString();
-        }
-
-        private async Task<string> ___TURNOVER_REGMONTHsync(string username)
-        {
-            var cookie_manager = Cef.GetGlobalCookieManager();
-            var visitor = new CookieCollector();
-            cookie_manager.VisitUrlCookies(__url, true, visitor);
-            var cookies = await visitor.Task;
-            var cookie = CookieCollector.GetCookieHeader(cookies);
-            WebClient wc = new WebClient();
-            wc.Headers.Add("Cookie", cookie);
-            wc.Encoding = Encoding.UTF8;
-            wc.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
-
-            byte[] result = await wc.DownloadDataTaskAsync(__root_url + "/manager/member/getProfileOverview?userId=" + username);
-            string responsebody = Encoding.UTF8.GetString(result);
-            var deserialize_object = JsonConvert.DeserializeObject(responsebody);
-            JObject _jo = JObject.Parse(deserialize_object.ToString());
-            JToken _reg_month = _jo.SelectToken("$.createTime").ToString();
-            return _reg_month.ToString();
         }
 
         private async Task ___PAYMENT_DEPOSITAsync()
@@ -2043,8 +2102,10 @@ namespace YB_Cronos_Data
                     // -----
                     JToken _vip = __jo.SelectToken("$.aaData[" + i + "].vipLevel").ToString();
                     // -----
-                    string _fd_date = await ___REGISTRATION_FIRSTDEPOSITAsync(_member.ToString());
-                    string _ld_date = await ___REGISTRATION_LASTDEPOSITAsync(_member.ToString());
+                    string _fd_ld_date = await ___REGISTRATION_FIRSTLASTDEPOSITREGMONTHAsync(_member.ToString());
+                    string[] _fd_ld_date_replace = _fd_ld_date.Split('|');
+                    string _fd_date = _fd_ld_date_replace[0];
+                    string _ld_date = _fd_ld_date_replace[1];
                     string _first_fd_month = "";
                     string _fd_date_rnr = "";
                     string _ld_date_rnr = "";
