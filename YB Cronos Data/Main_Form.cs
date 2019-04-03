@@ -41,7 +41,7 @@ namespace YB_Cronos_Data
         private bool __is_start = false;
         private bool __is_autostart = true;
         private bool __detect_header = false;
-        private bool __is_send = true;
+        private bool __is_send = false;
         private JObject __jo;
         private JToken __jo_count;
         private ChromiumWebBrowser chromeBrowser;
@@ -261,7 +261,13 @@ namespace YB_Cronos_Data
                         
                         SendITSupport("The application have been logout, please re-login again.");
                         SendMyBot("The application have been logout, please re-login again.");
+
                         __send = 0;
+
+                        if (!__is_send)
+                        {
+                            Environment.Exit(0);
+                        }
                     }));
                 }
 
@@ -279,6 +285,7 @@ namespace YB_Cronos_Data
                                 {
                                     args.Frame.ExecuteJavaScriptAsync("document.getElementById('username').value = 'ybrain';");
                                     args.Frame.ExecuteJavaScriptAsync("document.getElementById('password').value = 'pass123';");
+                                    args.Frame.ExecuteJavaScriptAsync("document.querySelector('.submit.btn.btn-primary.pull-right').click();");
                                     args.Frame.ExecuteJavaScriptAsync("window.scrollTo(0,document.body.scrollHeight)");
                                     __is_login = false;
                                     panel_cefsharp.Visible = true;
@@ -1322,7 +1329,6 @@ namespace YB_Cronos_Data
 
         private async Task ___TURNOVERAsync()
         {
-            
             try
             {
                 label_bettorecord.Visible = true;
@@ -1354,157 +1360,158 @@ namespace YB_Cronos_Data
                 StringBuilder _DATA = new StringBuilder();
                 int _display_count = 0;
 
-                for (int i = 0; i < _jo_count.Count(); i++)
+                if (__jo_count.Count() > 0)
                 {
-                    Application.DoEvents();
-                    _display_count++;
-                    label_bettorecord.Text = "Turnover Record: " + _display_count.ToString("N0") + " of " + _jo_count.Count().ToString("N0");
 
-                    // -----
-                    JToken _member = _jo.SelectToken("$.aaData[" + i + "].userId").ToString();
-                    // -----
-                    JToken _provider = _jo.SelectToken("$.aaData[" + i + "].vendorId").ToString();
-                    string _provider_replace = Regex.Replace(_provider.ToString(), @" ?\(.*?\)", string.Empty);
-                    _provider = _provider_replace;
-                    // -----
-                    JToken _category = _jo.SelectToken("$.aaData[" + i + "].gameType").ToString();
-                    if (_category.ToString().ToLower() == "slot")
+                    for (int i = 0; i < _jo_count.Count(); i++)
                     {
-                        _category = "Slots";
-                    }
-                    else if (_category.ToString().ToLower() == "sport")
-                    {
-                        _category = "Sports";
-                    }
-                    else if (_category.ToString().ToLower() == "casino")
-                    {
-                        _category = "Live Casino";
-                    }
-                    if (_provider.ToString() == "开元棋牌")
-                    {
-                        _category = "Card Game";
-                    }
-                    // -----
-                    JToken _vip = _jo.SelectToken("$.aaData[" + i + "].vipLevel").ToString();
-                    // -----
-                    JToken _stake = _jo.SelectToken("$.aaData[" + i + "].sumBetAmount").ToString();
-                    // -----
-                    JToken _stake_ex_draw = _jo.SelectToken("$.aaData[" + i + "].turnover").ToString();
-                    // -----
-                    JToken _bet_count = _jo.SelectToken("$.aaData[" + i + "].betCount").ToString();
-                    // -----
-                    JToken _company_wl = _jo.SelectToken("$.aaData[" + i + "].profit").ToString();
-                    // -----
-                    JToken _date = _jo.SelectToken("$.aaData[" + i + "].summaryDate").ToString();
+                        Application.DoEvents();
+                        _display_count++;
+                        label_bettorecord.Text = "Turnover Record: " + _display_count.ToString("N0") + " of " + _jo_count.Count().ToString("N0");
 
-                    string _fd_ld_date = await ___REGISTRATION_FIRSTLASTDEPOSITREGMONTHAsync(_member.ToString());
-                    string[] _fd_ld_date_replace = _fd_ld_date.Split('|');
-                    string _fd_date = _fd_ld_date_replace[0];
-                    string _ld_date = _fd_ld_date_replace[1];
-                    string _reg_month = _fd_ld_date_replace[2];
-                    string _fd_date_rnr = "";
-                    string _ld_date_rnr = "";
-                    if (_fd_date != "")
-                    {
-                        DateTime _fd_date_replace = new DateTime(1970, 1, 1, 0, 0, 0, 0).AddSeconds(Math.Round(Convert.ToDouble(_fd_date.ToString()) / 1000d)).ToLocalTime();
-                        _fd_date = _fd_date_replace.ToString("MM/dd/yyyy");
-                        _fd_date_rnr = _fd_date_replace.ToString("MM/yyyy");
-                    }
-                    else
-                    {
-                        _fd_date = "";
-                    }
-                    if (_ld_date != "")
-                    {
-                        DateTime _ld_date_replace = new DateTime(1970, 1, 1, 0, 0, 0, 0).AddSeconds(Math.Round(Convert.ToDouble(_ld_date.ToString()) / 1000d)).ToLocalTime();
-                        _ld_date = _ld_date_replace.ToString("yyyy-MM-dd");
-                        _ld_date_rnr = _ld_date_replace.ToString("yyyy-MM");
-                    }
-                    else
-                    {
-                        _ld_date = "";
-                    }
-                    // ----- Retained
-                    string _retained = "";
-                    string _month_ = DateTime.Now.Month.ToString();
-                    string _year_ = DateTime.Now.Year.ToString();
-                    string _year_month = _year_ + "-" + _month_;
-                    string _current_month = DateTime.Now.ToString("MM/yyyy");
-                    string _current_month_ = DateTime.Now.ToString("yyyy-MM");
-                    string _last_month = DateTime.Now.AddMonths(-1).ToString("yyyy-MM");
-                    string _last_month_ = DateTime.Now.AddMonths(-1).ToString("MM/yyyy");
-
-                    if (_fd_date_rnr == _current_month)
-                    {
-                        _retained = "Not Retained";
-                    }
-                    else if (_fd_date_rnr == _last_month_ || _ld_date_rnr == _last_month || _ld_date_rnr == _current_month_)
-                    {
-                        _retained = "Retained";
-                    }
-                    else
-                    {
-                        _retained = "Not Retained";
-                    }
-                    // ----- New Based on Reg && Reg Month
-                    string _month = "";
-                    string _new_based_on_reg = "";
-                    if (_reg_month != "")
-                    {
-                        DateTime _reg_month_replace = new DateTime(1970, 1, 1, 0, 0, 0, 0).AddSeconds(Math.Round(Convert.ToDouble(_reg_month.ToString()) / 1000d)).ToLocalTime();
-                        _reg_month = _reg_month_replace.ToString("MM/dd/yyyy");
-                        _month = _reg_month_replace.ToString("yyyy-MM-01");
-
-                        DateTime _reg_month_replace_ = DateTime.ParseExact(_reg_month, "MM/dd/yyyy", CultureInfo.InvariantCulture);
-                        if (_reg_month_replace_.ToString("yyyy-MM") == _year_month)
+                        // -----
+                        JToken _member = _jo.SelectToken("$.aaData[" + i + "].userId").ToString();
+                        // -----
+                        JToken _provider = _jo.SelectToken("$.aaData[" + i + "].vendorId").ToString();
+                        string _provider_replace = Regex.Replace(_provider.ToString(), @" ?\(.*?\)", string.Empty);
+                        _provider = _provider_replace;
+                        // -----
+                        JToken _category = _jo.SelectToken("$.aaData[" + i + "].gameType").ToString();
+                        if (_category.ToString().ToLower() == "slot")
                         {
-                            _new_based_on_reg = "Yes";
+                            _category = "Slots";
+                        }
+                        else if (_category.ToString().ToLower() == "sport")
+                        {
+                            _category = "Sports";
+                        }
+                        else if (_category.ToString().ToLower() == "casino")
+                        {
+                            _category = "Live Casino";
+                        }
+                        if (_provider.ToString() == "开元棋牌")
+                        {
+                            _category = "Card Game";
+                        }
+                        // -----
+                        JToken _vip = _jo.SelectToken("$.aaData[" + i + "].vipLevel").ToString();
+                        // -----
+                        JToken _stake = _jo.SelectToken("$.aaData[" + i + "].sumBetAmount").ToString();
+                        // -----
+                        JToken _stake_ex_draw = _jo.SelectToken("$.aaData[" + i + "].turnover").ToString();
+                        // -----
+                        JToken _bet_count = _jo.SelectToken("$.aaData[" + i + "].betCount").ToString();
+                        // -----
+                        JToken _company_wl = _jo.SelectToken("$.aaData[" + i + "].profit").ToString();
+                        // -----
+                        JToken _date = _jo.SelectToken("$.aaData[" + i + "].summaryDate").ToString();
+
+                        string _fd_ld_date = await ___REGISTRATION_FIRSTLASTDEPOSITREGMONTHAsync(_member.ToString());
+                        string[] _fd_ld_date_replace = _fd_ld_date.Split('|');
+                        string _fd_date = _fd_ld_date_replace[0];
+                        string _ld_date = _fd_ld_date_replace[1];
+                        string _reg_month = _fd_ld_date_replace[2];
+                        string _fd_date_rnr = "";
+                        string _ld_date_rnr = "";
+                        if (_fd_date != "")
+                        {
+                            DateTime _fd_date_replace = new DateTime(1970, 1, 1, 0, 0, 0, 0).AddSeconds(Math.Round(Convert.ToDouble(_fd_date.ToString()) / 1000d)).ToLocalTime();
+                            _fd_date = _fd_date_replace.ToString("MM/dd/yyyy");
+                            _fd_date_rnr = _fd_date_replace.ToString("MM/yyyy");
+                        }
+                        else
+                        {
+                            _fd_date = "";
+                        }
+                        if (_ld_date != "")
+                        {
+                            DateTime _ld_date_replace = new DateTime(1970, 1, 1, 0, 0, 0, 0).AddSeconds(Math.Round(Convert.ToDouble(_ld_date.ToString()) / 1000d)).ToLocalTime();
+                            _ld_date = _ld_date_replace.ToString("yyyy-MM-dd");
+                            _ld_date_rnr = _ld_date_replace.ToString("yyyy-MM");
+                        }
+                        else
+                        {
+                            _ld_date = "";
+                        }
+                        // ----- Retained
+                        string _retained = "";
+                        string _month_ = DateTime.Now.Month.ToString();
+                        string _year_ = DateTime.Now.Year.ToString();
+                        string _year_month = _year_ + "-" + _month_;
+                        string _current_month = DateTime.Now.ToString("MM/yyyy");
+                        string _current_month_ = DateTime.Now.ToString("yyyy-MM");
+                        string _last_month = DateTime.Now.AddMonths(-1).ToString("yyyy-MM");
+                        string _last_month_ = DateTime.Now.AddMonths(-1).ToString("MM/yyyy");
+
+                        if (_fd_date_rnr == _current_month)
+                        {
+                            _retained = "Not Retained";
+                        }
+                        else if (_fd_date_rnr == _last_month_ || _ld_date_rnr == _last_month || _ld_date_rnr == _current_month_)
+                        {
+                            _retained = "Retained";
+                        }
+                        else
+                        {
+                            _retained = "Not Retained";
+                        }
+                        // ----- New Based on Reg && Reg Month
+                        string _month = "";
+                        string _new_based_on_reg = "";
+                        if (_reg_month != "")
+                        {
+                            DateTime _reg_month_replace = new DateTime(1970, 1, 1, 0, 0, 0, 0).AddSeconds(Math.Round(Convert.ToDouble(_reg_month.ToString()) / 1000d)).ToLocalTime();
+                            _reg_month = _reg_month_replace.ToString("MM/dd/yyyy");
+                            _month = _reg_month_replace.ToString("yyyy-MM-01");
+
+                            DateTime _reg_month_replace_ = DateTime.ParseExact(_reg_month, "MM/dd/yyyy", CultureInfo.InvariantCulture);
+                            if (_reg_month_replace_.ToString("yyyy-MM") == _year_month)
+                            {
+                                _new_based_on_reg = "Yes";
+                            }
+                            else
+                            {
+                                _new_based_on_reg = "No";
+                            }
                         }
                         else
                         {
                             _new_based_on_reg = "No";
+                            _reg_month = "";
                         }
-                    }
-                    else
-                    {
-                        _new_based_on_reg = "No";
-                        _reg_month = "";
-                    }
-                    // ----- New Based on Dep
-                    // ----- Real Player
-                    string _real_player = "";
-                    string _new_based_on_dep = "";
-                    if (_fd_date != "")
-                    {
-                        DateTime _first_deposit = DateTime.ParseExact(_fd_date, "MM/dd/yyyy", CultureInfo.InvariantCulture);
-                        if (_first_deposit.ToString("yyyy-MM") == _year_month)
+                        // ----- New Based on Dep
+                        // ----- Real Player
+                        string _real_player = "";
+                        string _new_based_on_dep = "";
+                        if (_fd_date != "")
                         {
-                            _new_based_on_dep = "Yes";
+                            DateTime _first_deposit = DateTime.ParseExact(_fd_date, "MM/dd/yyyy", CultureInfo.InvariantCulture);
+                            if (_first_deposit.ToString("yyyy-MM") == _year_month)
+                            {
+                                _new_based_on_dep = "Yes";
+                            }
+                            else
+                            {
+                                _new_based_on_dep = "No";
+                            }
+
+                            _real_player = "Yes";
                         }
                         else
                         {
                             _new_based_on_dep = "No";
+                            _real_player = "No";
                         }
 
-                        _real_player = "Yes";
+                        if (_display_count == 1)
+                        {
+                            var header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17}", "Brand", "Provider", "Category", "Month", "Date", "Member", "Currency", "Stake", "Stake Ex. Draw", "Bet Count", "Company Winloss", "VIP", "Retained", "Reg Month", "First Dep Month", "New Based on Reg", "New Based on Dep", "Real Player");
+                            _DATA.AppendLine(header);
+                        }
+                        var data = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17}", __brand_code, "\"" + _provider + "\"", "\"" + _category + "\"", "\"" + _month + "\"", "\"" + _date + "\"", "\"" + _member + "\"", "\"" + "CNY" + "\"", "\"" + _stake + "\"", "\"" + _stake + "\"", "\"" + _bet_count + "\"", "\"" + _company_wl + "\"", "\"" + _vip + "\"", "\"" + _retained + "\"", "\"" + _reg_month + "\"", "\"" + _fd_date + "\"", "\"" + _new_based_on_reg + "\"", "\"" + _new_based_on_dep + "\"", "\"" + _real_player + "\"");
+                        _DATA.AppendLine(data);
                     }
-                    else
-                    {
-                        _new_based_on_dep = "No";
-                        _real_player = "No";
-                    }
-                    
-                    if (_display_count == 1)
-                    {
-                        var header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17}", "Brand", "Provider", "Category", "Month", "Date", "Member", "Currency", "Stake", "Stake Ex. Draw", "Bet Count", "Company Winloss", "VIP", "Retained", "Reg Month", "First Dep Month", "New Based on Reg", "New Based on Dep", "Real Player");
-                        _DATA.AppendLine(header);
-                    }
-                    var data = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17}", __brand_code, "\"" + _provider + "\"", "\"" + _category + "\"", "\"" + _month + "\"", "\"" + _date + "\"", "\"" + _member + "\"", "\"" + "CNY" + "\"", "\"" + _stake + "\"", "\"" + _stake + "\"", "\"" + _bet_count + "\"", "\"" + _company_wl + "\"", "\"" + _vip + "\"", "\"" + _retained + "\"", "\"" + _reg_month + "\"", "\"" + _fd_date + "\"", "\"" + _new_based_on_reg + "\"", "\"" + _new_based_on_dep + "\"", "\"" + _real_player + "\"");
-                    _DATA.AppendLine(data);
-                }
 
-                if (_jo_count.ToString() != "0")
-                {
                     // TURNOVER SAVING TO EXCEL
                     string _current_datetime = DateTime.Now.ToString("yyyy-MM-dd");
 
@@ -1543,7 +1550,7 @@ namespace YB_Cronos_Data
                     {
                         File.Delete(_folder_path_result_xlsx);
                     }
-                    
+
                     File.WriteAllText(_folder_path_result, _DATA.ToString(), Encoding.UTF8);
 
                     Excel.Application app = new Excel.Application();
@@ -1598,7 +1605,11 @@ namespace YB_Cronos_Data
 
                     _DATA.Clear();
                 }
-                
+                else
+                {
+                    SendReportsTeam("No Data for Turnover Report.");
+                }
+
                 label_bettorecord.Text = "-";
                 await ___BETAsync();
                 
@@ -1642,58 +1653,86 @@ namespace YB_Cronos_Data
                 JObject _jo = JObject.Parse(deserialize_object.ToString());
                 JToken _jo_count = _jo.SelectToken("$.bets");
 
-                for (int i = 0; i < _jo_count.Count(); i++)
+                if (_jo_count.Count() > 0)
                 {
-                    Application.DoEvents();
-
-                    string yesterday_date = DateTime.Now.AddDays(-1).ToString("yyyy-MM-dd");
-                    // -----
-                    JToken _date = _jo.SelectToken("$.bets[" + i + "].date").ToString().Replace("/", "-");
-                    if (yesterday_date == _date.ToString())
+                    bool bet_detect = false;
+                    
+                    for (int i = 0; i < _jo_count.Count(); i++)
                     {
+                        Application.DoEvents();
+
+                        string yesterday_date = DateTime.Now.AddDays(-1).ToString("yyyy-MM-dd");
                         // -----
-                        JToken _name = _jo.SelectToken("$.bets[" + i + "].name").ToString();
-                        string _file_name = _name.ToString().Remove(18, 3);
-
-                        string _current_datetime = DateTime.Now.ToString("yyyy-MM-dd");
-                        if (!Directory.Exists(__file_location + "\\Cronos Data"))
+                        JToken _date = _jo.SelectToken("$.bets[" + i + "].date").ToString().Replace("/", "-");
+                        if (yesterday_date == _date.ToString())
                         {
-                            Directory.CreateDirectory(__file_location + "\\Cronos Data");
+                            // -----
+                            JToken _name = _jo.SelectToken("$.bets[" + i + "].name").ToString();
+                            string _file_name = _name.ToString().Remove(18, 3);
+
+                            string _current_datetime = DateTime.Now.ToString("yyyy-MM-dd");
+                            if (!Directory.Exists(__file_location + "\\Cronos Data"))
+                            {
+                                Directory.CreateDirectory(__file_location + "\\Cronos Data");
+                            }
+
+                            if (!Directory.Exists(__file_location + "\\Cronos Data\\" + __brand_code))
+                            {
+                                Directory.CreateDirectory(__file_location + "\\Cronos Data\\" + __brand_code);
+                            }
+
+                            if (!Directory.Exists(__file_location + "\\Cronos Data\\" + __brand_code + "\\" + _current_datetime))
+                            {
+                                Directory.CreateDirectory(__file_location + "\\Cronos Data\\" + __brand_code + "\\" + _current_datetime);
+                            }
+
+                            if (!Directory.Exists(__file_location + "\\Cronos Data\\" + __brand_code + "\\" + _current_datetime + "\\Bet Record"))
+                            {
+                                Directory.CreateDirectory(__file_location + "\\Cronos Data\\" + __brand_code + "\\" + _current_datetime + "\\Bet Record");
+                            }
+
+                            string _folder_path_result_xlsx = __file_location + "\\Cronos Data\\" + __brand_code + "\\" + _current_datetime + "\\Bet Record\\" + _file_name + ".xlsx";
+
+                            if (File.Exists(_folder_path_result_xlsx))
+                            {
+                                File.Delete(_folder_path_result_xlsx);
+                            }
+
+                            await wc.DownloadFileTaskAsync(
+                                new Uri(__root_url + "/manager/ReportController/downloadBetReport?fileName=" + _file_name + "&realName=" + _name),
+                                _folder_path_result_xlsx
+                            );
+
+                            __send = 0;
+
+                            ___BET_PROCESS(_folder_path_result_xlsx);
+
+                            break;
                         }
-
-                        if (!Directory.Exists(__file_location + "\\Cronos Data\\" + __brand_code))
-                        {
-                            Directory.CreateDirectory(__file_location + "\\Cronos Data\\" + __brand_code);
-                        }
-
-                        if (!Directory.Exists(__file_location + "\\Cronos Data\\" + __brand_code + "\\" + _current_datetime))
-                        {
-                            Directory.CreateDirectory(__file_location + "\\Cronos Data\\" + __brand_code + "\\" + _current_datetime);
-                        }
-
-                        if (!Directory.Exists(__file_location + "\\Cronos Data\\" + __brand_code + "\\" + _current_datetime + "\\Bet Record"))
-                        {
-                            Directory.CreateDirectory(__file_location + "\\Cronos Data\\" + __brand_code + "\\" + _current_datetime + "\\Bet Record");
-                        }
-                        
-                        string _folder_path_result_xlsx = __file_location + "\\Cronos Data\\" + __brand_code + "\\" + _current_datetime + "\\Bet Record\\" + _file_name + ".xlsx";
-
-                        if (File.Exists(_folder_path_result_xlsx))
-                        {
-                            File.Delete(_folder_path_result_xlsx);
-                        }
-
-                        await wc.DownloadFileTaskAsync(
-                            new Uri(__root_url + "/manager/ReportController/downloadBetReport?fileName=" + _file_name + "&realName=" + _name),
-                            _folder_path_result_xlsx
-                        );
-
-                        __send = 0;
-
-                        ___BET_PROCESS(_folder_path_result_xlsx);
-
-                        break;
                     }
+
+                    if (!bet_detect)
+                    {
+                        SendReportsTeam("No Data for Bet Report.");
+
+                        label_status.Text = "Waiting";
+                        SendReportsTeam("Bet and Turnover Reports Completed.");
+                        __getdata_regdetails.Clear();
+                        label_bettorecord.Visible = false;
+                        label_bettorecord.Text = "-";
+                    }
+                }
+                else
+                {
+                    SendReportsTeam("No Data for Bet Report.");
+
+                    label_status.Text = "Waiting";
+                    SendReportsTeam("Bet and Turnover Reports Completed.");
+                    __getdata_regdetails.Clear();
+                    label_bettorecord.Visible = false;
+                    label_bettorecord.Text = "-";
+
+                    __send = 0;
                 }
             }
             catch (Exception err)
@@ -1906,7 +1945,7 @@ namespace YB_Cronos_Data
                 _display_count = 0;
 
                 label_status.Text = "Waiting";
-                SendReportsTeam("Bet and Turnover Record Completed.");
+                SendReportsTeam("Bet and Turnover Reports Completed.");
                 __getdata_regdetails.Clear();
                 label_bettorecord.Visible = false;
                 label_bettorecord.Text = "-";
