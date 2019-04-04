@@ -1652,7 +1652,7 @@ namespace YB_Cronos_Data
                 var deserialize_object = JsonConvert.DeserializeObject(responsebody);
                 JObject _jo = JObject.Parse(deserialize_object.ToString());
                 JToken _jo_count = _jo.SelectToken("$.bets");
-
+                
                 if (_jo_count.Count() > 0)
                 {
                     bool bet_detect = false;
@@ -1666,6 +1666,8 @@ namespace YB_Cronos_Data
                         JToken _date = _jo.SelectToken("$.bets[" + i + "].date").ToString().Replace("/", "-");
                         if (yesterday_date == _date.ToString())
                         {
+                            bet_detect = true;
+                            
                             // -----
                             JToken _name = _jo.SelectToken("$.bets[" + i + "].name").ToString();
                             string _file_name = _name.ToString().Remove(18, 3);
