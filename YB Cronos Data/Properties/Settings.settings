@@ -20,5 +20,8 @@
     <Setting Name="______betto_record_time" Type="System.String" Scope="User">
       <Value Profile="(Default)">04</Value>
     </Setting>
+    <Setting Name="______is_send_telegram" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

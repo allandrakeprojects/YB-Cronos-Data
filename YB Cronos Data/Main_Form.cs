@@ -41,7 +41,7 @@ namespace YB_Cronos_Data
         private bool __is_start = false;
         private bool __is_autostart = true;
         private bool __detect_header = false;
-        private bool __is_send = false;
+        private bool isClose;
         private JObject __jo;
         private JToken __jo_count;
         private ChromiumWebBrowser chromeBrowser;
@@ -215,7 +215,24 @@ namespace YB_Cronos_Data
             DialogResult dr = MessageBox.Show("Exit the program?", __brand_code + " Cronos Data", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
             if (dr == DialogResult.Yes)
             {
+                isClose = true;
                 Environment.Exit(0);
+            }
+        }
+
+        private void Main_Form_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            if (!isClose)
+            {
+                DialogResult dr = MessageBox.Show("Exit the program?", __brand_code + " Cronos Data", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                if (dr == DialogResult.No)
+                {
+                    e.Cancel = true;
+                }
+                else
+                {
+                    Environment.Exit(0);
+                }
             }
         }
 
@@ -264,8 +281,9 @@ namespace YB_Cronos_Data
 
                         __send = 0;
 
-                        if (!__is_send)
+                        if (!Properties.Settings.Default.______is_send_telegram)
                         {
+                            isClose = false;
                             Environment.Exit(0);
                         }
                     }));
@@ -999,6 +1017,7 @@ namespace YB_Cronos_Data
                     SendITSupport("There's a problem to the server, please re-open the application.");
                     SendMyBot(err.ToString());
 
+                    isClose = false;
                     Environment.Exit(0);
                 }
                 else
@@ -1317,6 +1336,7 @@ namespace YB_Cronos_Data
                     SendITSupport("There's a problem to the server, please re-open the application.");
                     SendMyBot(err.ToString());
 
+                    isClose = false;
                     Environment.Exit(0);
                 }
                 else
@@ -1623,6 +1643,7 @@ namespace YB_Cronos_Data
                     SendITSupport("There's a problem to the server, please re-open the application.");
                     SendMyBot(err.ToString());
 
+                    isClose = false;
                     Environment.Exit(0);
                 }
                 else
@@ -2490,6 +2511,7 @@ namespace YB_Cronos_Data
                     SendITSupport("There's a problem to the server, please re-open the application.");
                     SendMyBot(err.ToString());
 
+                    isClose = false;
                     Environment.Exit(0);
                 }
                 else
@@ -2864,6 +2886,7 @@ namespace YB_Cronos_Data
                     SendITSupport("There's a problem to the server, please re-open the application.");
                     SendMyBot(err.ToString());
 
+                    isClose = false;
                     Environment.Exit(0);
                 }
                 else
@@ -3239,6 +3262,7 @@ namespace YB_Cronos_Data
                     SendITSupport("There's a problem to the server, please re-open the application.");
                     SendMyBot(err.ToString());
 
+                    isClose = false;
                     Environment.Exit(0);
                 }
                 else
@@ -3298,7 +3322,8 @@ namespace YB_Cronos_Data
             {
                 SendITSupport("There's a problem to the server, please re-open the application.");
                 SendMyBot(err.ToString());
-                
+
+                isClose = false;
                 Environment.Exit(0);
             }
         }
@@ -3360,7 +3385,8 @@ namespace YB_Cronos_Data
             {
                 SendITSupport("There's a problem to the server, please re-open the application.");
                 SendMyBot(err.ToString());
-                
+
+                isClose = false;
                 Environment.Exit(0);
             }
         }
@@ -3510,7 +3536,8 @@ namespace YB_Cronos_Data
                         if (line != null)
                             sb.Append(line);
                     }
-                    
+
+                    isClose = false;
                     Environment.Exit(0);
                 }
                 else
@@ -3520,7 +3547,8 @@ namespace YB_Cronos_Data
                     {
                         SendITSupport("There's a problem to the server, please re-open the application.");
                         SendMyBot(err.ToString());
-                        
+
+                        isClose = false;
                         Environment.Exit(0);
                     }
                     else
@@ -3534,7 +3562,7 @@ namespace YB_Cronos_Data
 
         private void SendITSupport(string message)
         {
-            if (__is_send)
+            if (Properties.Settings.Default.______is_send_telegram)
             {
                 try
                 {
@@ -3581,7 +3609,8 @@ namespace YB_Cronos_Data
                                 sb.Append(line);
                             }
                         }
-                        
+
+                        isClose = false;
                         Environment.Exit(0);
                     }
                     else
@@ -3591,7 +3620,8 @@ namespace YB_Cronos_Data
                         {
                             SendITSupport("There's a problem to the server, please re-open the application.");
                             SendMyBot(err.ToString());
-                            
+
+                            isClose = false;
                             Environment.Exit(0);
                         }
                         else
@@ -3636,6 +3666,7 @@ namespace YB_Cronos_Data
                     SendITSupport("There's a problem to the server, please re-open the application.");
                     SendMyBot(err.ToString());
 
+                    isClose = false;
                     Environment.Exit(0);
                 }
                 else
@@ -3673,14 +3704,16 @@ namespace YB_Cronos_Data
 
         private void panel_MouseDoubleClick(object sender, MouseEventArgs e)
         {
-            if (__is_send)
+            if (Properties.Settings.Default.______is_send_telegram)
             {
-                __is_send = false;
+                Properties.Settings.Default.______is_send_telegram = false;
+                Properties.Settings.Default.Save();
                 MessageBox.Show("Telegram Notification is Disabled.", __brand_code + " " + __app, MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             else
             {
-                __is_send = true;
+                Properties.Settings.Default.______is_send_telegram = true;
+                Properties.Settings.Default.Save();
                 MessageBox.Show("Telegram Notification is Enabled.", __brand_code + " " + __app, MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
         }
@@ -3735,7 +3768,8 @@ namespace YB_Cronos_Data
                     {
                         SendITSupport("There's a problem to the server, please re-open the application.");
                         SendMyBot(err.ToString());
-                        
+
+                        isClose = false;
                         Environment.Exit(0);
                     }
                     else
@@ -3782,7 +3816,8 @@ namespace YB_Cronos_Data
                     {
                         SendITSupport("There's a problem to the server, please re-open the application.");
                         SendMyBot(err.ToString());
-                        
+
+                        isClose = false;
                         Environment.Exit(0);
                     }
                     else
